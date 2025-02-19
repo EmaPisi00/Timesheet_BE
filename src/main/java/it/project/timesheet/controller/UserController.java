@@ -14,6 +14,11 @@ public class UserController implements UserApi {
     private final UserService userService;
 
     @Override
+    public User save(User user) {
+        return userService.save(user);
+    }
+
+    @Override
     public List<User> findAll() {
         return userService.findAll();
     }
