@@ -1,6 +1,6 @@
-package it.project.timesheet.entity;
+package it.project.timesheet.domain.entity;
 
-import it.project.timesheet.entity.common.MysqlBaseEntity;
+import it.project.timesheet.domain.entity.common.MysqlBaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;

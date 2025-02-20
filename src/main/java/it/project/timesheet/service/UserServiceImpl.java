@@ -1,7 +1,9 @@
 package it.project.timesheet.service;
 
 import io.micrometer.common.util.StringUtils;
-import it.project.timesheet.entity.User;
+import it.project.timesheet.domain.entity.User;
+import it.project.timesheet.exception.BadRequestException;
+import it.project.timesheet.exception.common.BaseException;
 import it.project.timesheet.repository.UserRepository;
 import it.project.timesheet.service.common.UserService;
 import lombok.RequiredArgsConstructor;
@@ -17,15 +19,13 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
     @Override
-    public User save(User user) {
-        if(user.getUuid() != null && StringUtils.isNotBlank(user.getUuid().toString())){
-            // gestione errore: caso di uuid inserito in input
-            return null;
+    public User save(User user) throws BaseException {
+        if (user.getUuid() != null && StringUtils.isNotBlank(user.getUuid().toString())) {
+            throw new BadRequestException("UUID presente :  " + user.getUuid().toString());
         }
 
-        if(StringUtils.isBlank(user.getPassword()) || StringUtils.isBlank(user.getEmail())){
-            // gestione errore: caso di Password/Email
-            return null;
+        if (StringUtils.isBlank(user.getPassword()) || StringUtils.isBlank(user.getEmail())) {
+            throw new BadRequestException("Email o Password non inserite");
         }
         return persistOnMysql(user);
     }
@@ -50,7 +50,7 @@ public class UserServiceImpl implements UserService {
         return userRepository.findAll();
     }
 
-    private User persistOnMysql(User user){
+    private User persistOnMysql(User user) {
         return userRepository.save(user);
     }
 }

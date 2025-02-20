@@ -1,6 +1,6 @@
 package it.project.timesheet.repository;
 
-import it.project.timesheet.entity.User;
+import it.project.timesheet.domain.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
