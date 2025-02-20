@@ -1,4 +1,4 @@
-package it.project.timesheet.service.common;
+package it.project.timesheet.service.base;
 
 import it.project.timesheet.domain.entity.User;
 import it.project.timesheet.exception.common.BaseException;

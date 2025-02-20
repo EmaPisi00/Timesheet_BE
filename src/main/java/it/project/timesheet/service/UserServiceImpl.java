@@ -5,7 +5,7 @@ import it.project.timesheet.domain.entity.User;
 import it.project.timesheet.exception.BadRequestException;
 import it.project.timesheet.exception.common.BaseException;
 import it.project.timesheet.repository.UserRepository;
-import it.project.timesheet.service.common.UserService;
+import it.project.timesheet.service.base.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

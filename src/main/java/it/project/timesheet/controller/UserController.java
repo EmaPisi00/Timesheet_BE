@@ -3,7 +3,7 @@ package it.project.timesheet.controller;
 import it.project.timesheet.controller.api.UserApi;
 import it.project.timesheet.domain.entity.User;
 import it.project.timesheet.exception.common.BaseException;
-import it.project.timesheet.service.common.UserService;
+import it.project.timesheet.service.base.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
