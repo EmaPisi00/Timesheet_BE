@@ -38,7 +38,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User findByUuid(UUID uuid) throws BaseException {
         User user = userRepository.findByUuidAndDeletedAtIsNull(uuid).
-                orElseThrow(() -> new ObjectNotFoundException("User non trovato con questo UUID: " + uuid.toString()));
+                orElseThrow(() -> new ObjectNotFoundException("User non trovato non questo UUID: " + uuid.toString()));
         log.info("User trovato {}", user);
         return user;
     }
@@ -69,7 +69,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<User> findAll() {
-        return userRepository.findAllByDeletedAtIsNull();
+        return userRepository.findAll();
     }
 
     private User persistOnMysql(User user) {

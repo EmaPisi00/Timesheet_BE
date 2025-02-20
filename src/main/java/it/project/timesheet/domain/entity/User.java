@@ -3,6 +3,7 @@ package it.project.timesheet.domain.entity;
 import it.project.timesheet.domain.entity.common.MysqlBaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -22,5 +23,8 @@ public class User extends MysqlBaseEntity {
 
     @Column(name = "password")
     private String password;
-    
+
+    @OneToOne(mappedBy = "employee")
+    private Employee employee;
+
 }
