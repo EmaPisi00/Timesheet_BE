@@ -23,8 +23,4 @@ public class User extends MysqlBaseEntity {
 
     @Column(name = "password")
     private String password;
-
-    @OneToOne(mappedBy = "employee")
-    private Employee employee;
-
 }

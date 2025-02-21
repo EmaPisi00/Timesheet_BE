@@ -32,12 +32,15 @@ public class EmployeeServiceImpl implements EmployeeService {
             throw new BadRequestException("UUID presente :  " + employee.getUuid().toString());
         }
 
-        userService.findByUuid(employee.getUser().getUuid());
+        User user = userService.findByUuid(employee.getUser().getUuid());
 
         if (StringUtils.isBlank(employee.getName())
                 || StringUtils.isBlank(employee.getSurname())) {
             throw new BadRequestException("Nome o Cognome non inseriti");
         }
+
+        employee.setUser(user);
+
         return persistOnMysql(employee);
     }
 
@@ -55,7 +58,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         User userFound = userService.findByUuid(employee.getUser().getUuid());
 
         if (StringUtils.isBlank(employee.getName())
-                || StringUtils.isBlank(employee.getSurname()))  ) {
+                || StringUtils.isBlank(employee.getSurname())) {
             throw new BadRequestException("Nome o Cognome non inseriti");
         }
 
