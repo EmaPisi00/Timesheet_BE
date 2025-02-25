@@ -1,16 +1,17 @@
 package it.project.timesheet.domain.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import it.project.timesheet.domain.entity.common.MysqlBaseEntity;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
+
+import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
+@ToString(exclude = {"user"}) // Esclude relazioni
 @Entity
 @Table(name = "employee")
 public class Employee extends MysqlBaseEntity {
@@ -24,5 +25,8 @@ public class Employee extends MysqlBaseEntity {
 
     @Column(name = "surname")
     private String surname;
-    
+
+    @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference
+    List<Timesheet> timesheetList;
 }

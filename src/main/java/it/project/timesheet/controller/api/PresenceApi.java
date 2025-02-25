@@ -2,7 +2,7 @@ package it.project.timesheet.controller.api;
 
 
 import io.swagger.v3.oas.annotations.tags.Tag;
-import it.project.timesheet.domain.entity.Employee;
+import it.project.timesheet.domain.entity.Presence;
 import it.project.timesheet.exception.common.BaseException;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,21 +10,21 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/empoloyee")
-@Tag(name = "Employee")
-public interface EmployeeApi {
+@RequestMapping("/api/presence")
+@Tag(name = "Presence")
+public interface PresenceApi {
 
     @PostMapping
-    Employee save(@RequestBody Employee employee) throws BaseException;
+    Presence save(@RequestBody Presence presence) throws BaseException;
 
     @GetMapping
-    List<Employee> findAll();
+    List<Presence> findAll();
 
     @GetMapping("/{uuid}")
-    Employee findById(@PathVariable("uuid") UUID uuid) throws BaseException;
+    Presence findById(@PathVariable("uuid") UUID uuid) throws BaseException;
 
     @PutMapping("/{uuid}")
-    Employee update(@PathVariable("uuid") UUID uuid, @RequestBody Employee employee) throws BaseException;
+    Presence update(@PathVariable("uuid") UUID uuid, @RequestBody Presence presence) throws BaseException;
 
     @DeleteMapping("/{uuid}")
     void delete(@PathVariable("uuid") UUID uuid) throws BaseException;

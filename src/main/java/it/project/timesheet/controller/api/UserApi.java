@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/timesheet/user")
+@RequestMapping("/api/user")
 @Tag(name = "User")
 public interface UserApi {
 
