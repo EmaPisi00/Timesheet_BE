@@ -39,4 +39,9 @@ public class TimesheetController implements TimesheetApi {
     public void delete(UUID uuid) throws BaseException {
         timesheetService.deleteByUuid(uuid);
     }
+
+    @Override
+    public Timesheet findbyMonthAndYear(Integer month, Integer year) throws BaseException {
+        return timesheetService.findByMonthAndYear(month, year);
+    }
 }

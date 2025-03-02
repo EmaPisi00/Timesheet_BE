@@ -10,6 +10,8 @@ import java.util.UUID;
 @Service
 public interface TimesheetService {
 
+    // CRUD
+
     Timesheet save(Timesheet timesheet) throws BaseException;
 
     Timesheet findByUuid(UUID uuid) throws BaseException;
@@ -19,4 +21,10 @@ public interface TimesheetService {
     void deleteByUuid(UUID uuid) throws BaseException;
 
     List<Timesheet> findAll();
+
+    // OTHER
+
+    Timesheet findByMonthAndYear(Integer month, Integer year) throws BaseException;
+
+
 }

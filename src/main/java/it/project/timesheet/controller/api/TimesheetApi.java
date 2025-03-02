@@ -29,4 +29,7 @@ public interface TimesheetApi {
     @DeleteMapping("/{uuid}")
     void delete(@PathVariable("uuid") UUID uuid) throws BaseException;
 
+    @GetMapping
+    Timesheet findbyMonthAndYear(@PathVariable("month") Integer month, @PathVariable("year") Integer year) throws BaseException;
+
 }

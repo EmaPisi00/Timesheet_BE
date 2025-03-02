@@ -83,6 +83,14 @@ public class TimesheetServiceImpl implements TimesheetService {
         return timesheetRepository.findAllByDeletedAtIsNull();
     }
 
+    @Override
+    public Timesheet findByMonthAndYear(Integer month, Integer year) throws BaseException {
+        Timesheet timesheet = timesheetRepository.findByMonthAndYearAndDeletedAtIsNull(month, year).
+                orElseThrow(() -> new ObjectNotFoundException("Timesheet non trovato con questo mese: " + month + " e questo anno : " + year));
+        log.info("Timesheet trovato {}", timesheet);
+        return timesheet;
+    }
+
     private Timesheet persistOnMysql(Timesheet timesheet) {
         timesheet = timesheetRepository.save(timesheet);
         log.info("Timesheet salvato {}", timesheet);
