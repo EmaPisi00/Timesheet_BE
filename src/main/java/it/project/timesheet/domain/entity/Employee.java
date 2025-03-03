@@ -26,7 +26,7 @@ public class Employee extends MysqlBaseEntity {
     @Column(name = "surname")
     private String surname;
 
-    @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "employee", fetch = FetchType.LAZY)
     @JsonManagedReference
     List<Timesheet> timesheetList;
 }

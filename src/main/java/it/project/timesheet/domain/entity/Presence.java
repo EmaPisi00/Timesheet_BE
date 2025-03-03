@@ -5,10 +5,12 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import it.project.timesheet.domain.entity.common.MysqlBaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 
+@SuperBuilder
 @EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 @NoArgsConstructor

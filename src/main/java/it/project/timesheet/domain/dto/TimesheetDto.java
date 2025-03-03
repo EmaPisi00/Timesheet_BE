@@ -1,19 +1,22 @@
 package it.project.timesheet.domain.dto;
 
-import it.project.timesheet.domain.entity.Presence;
-import it.project.timesheet.domain.entity.Timesheet;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import java.util.List;
+import it.project.timesheet.domain.entity.User;
+import lombok.*;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
+@EqualsAndHashCode(callSuper = false)
 public class TimesheetDto {
 
-    private Timesheet timesheet;
+    private User user;
 
-    private List<Presence> presenceList;
+    private String name;
+
+    private String surname;
+
+    private Integer month;
+
+    private Integer year;
 }

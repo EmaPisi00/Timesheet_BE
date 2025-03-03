@@ -2,6 +2,8 @@ package it.project.timesheet.controller.api;
 
 
 import io.swagger.v3.oas.annotations.tags.Tag;
+import it.project.timesheet.domain.dto.RequestTimesheetDto;
+import it.project.timesheet.domain.dto.TimesheetDto;
 import it.project.timesheet.domain.entity.Timesheet;
 import it.project.timesheet.exception.common.BaseException;
 import org.springframework.web.bind.annotation.*;
@@ -32,4 +34,6 @@ public interface TimesheetApi {
     @GetMapping("/findByMonthAndYear")
     Timesheet findByMonthAndYear(@RequestParam("month") Integer month, @RequestParam("year") Integer year, @RequestParam("uuid_employee") UUID uuidEmployee) throws BaseException;
 
+    @GetMapping("/generateTimesheet")
+    RequestTimesheetDto generateTimesheet(@RequestParam("month") Integer month, @RequestParam("year") Integer year, @RequestParam("uuid_employee") UUID uuidEmployee) throws BaseException;
 }
