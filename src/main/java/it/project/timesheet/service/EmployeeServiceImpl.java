@@ -46,8 +46,8 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public Employee findByUuid(UUID uuid) throws BaseException {
-        Employee employee = employeeRepository.findByUuidAndDeletedAtIsNull(uuid).
-                orElseThrow(() -> new ObjectNotFoundException("Employee non trovato con questo UUID: " + uuid.toString()));
+        Employee employee = employeeRepository.findByUuidAndDeletedAtIsNull(uuid)
+                .orElseThrow(() -> new ObjectNotFoundException("Employee non trovato con questo UUID: " + uuid.toString()));
         log.info("Employee trovato {}", employee);
         return employee;
     }
@@ -82,6 +82,16 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Override
     public List<Employee> findAll() {
         return employeeRepository.findAllByDeletedAtIsNull();
+    }
+
+    @Override
+    public Employee findByUser(UUID uuidUser) throws BaseException {
+        User user = userService.findByUuid(uuidUser);
+        Employee employee = employeeRepository.findByUserAndDeletedAtIsNull(user)
+                .orElseThrow(() -> new ObjectNotFoundException("Employee non trovato con questo UUID: " + uuidUser.toString()));
+        log.info("Employee trovato {}", employee);
+
+        return employee;
     }
 
     private Employee persistOnMysql(Employee employee) {

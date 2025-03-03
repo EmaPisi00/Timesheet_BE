@@ -3,6 +3,7 @@ package it.project.timesheet.controller;
 import it.project.timesheet.controller.api.TimesheetApi;
 import it.project.timesheet.domain.dto.RequestTimesheetDto;
 import it.project.timesheet.domain.dto.TimesheetDto;
+import it.project.timesheet.domain.entity.Presence;
 import it.project.timesheet.domain.entity.Timesheet;
 import it.project.timesheet.exception.common.BaseException;
 import it.project.timesheet.service.base.TimesheetService;
@@ -46,11 +47,16 @@ public class TimesheetController implements TimesheetApi {
 
     @Override
     public Timesheet findByMonthAndYear(Integer month, Integer year, UUID uuidEmployee) throws BaseException {
-        return timesheetService.findByMonthAndYearAndEmployee(month, year,uuidEmployee);
+        return timesheetService.findByMonthAndYearAndEmployee(month, year, uuidEmployee);
     }
 
     @Override
     public RequestTimesheetDto generateTimesheet(Integer month, Integer year, UUID uuidEmployee) throws BaseException {
         return timesheetFacade.generateTimesheet(month, year, uuidEmployee);
+    }
+
+    @Override
+    public List<Presence> saveTimesheet(RequestTimesheetDto requestTimesheetDto) throws BaseException {
+        return timesheetFacade.saveTimesheet(requestTimesheetDto);
     }
 }

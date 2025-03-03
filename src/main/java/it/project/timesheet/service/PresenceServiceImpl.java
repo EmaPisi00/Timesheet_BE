@@ -101,6 +101,11 @@ public class PresenceServiceImpl implements PresenceService {
         return presenceRepository.findAllByDeletedAtIsNull();
     }
 
+    @Override
+    public List<Presence> saveAll(List<Presence> presences) {
+        return presences.stream().map(this::persistOnMysql).toList();
+    }
+
     private Presence persistOnMysql(Presence presence) {
         presence = presenceRepository.save(presence);
         log.info("Presence salvato {}", presence);

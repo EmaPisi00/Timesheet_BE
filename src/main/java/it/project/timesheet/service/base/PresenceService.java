@@ -19,4 +19,6 @@ public interface PresenceService {
     void deleteByUuid(UUID uuid) throws BaseException;
 
     List<Presence> findAll();
+
+    List<Presence> saveAll(List<Presence> presences) ;
 }

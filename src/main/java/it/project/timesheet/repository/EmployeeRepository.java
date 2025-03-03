@@ -1,6 +1,7 @@
 package it.project.timesheet.repository;
 
 import it.project.timesheet.domain.entity.Employee;
+import it.project.timesheet.domain.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -14,4 +15,6 @@ public interface EmployeeRepository extends JpaRepository<Employee, UUID> {
     Optional<Employee> findByUuidAndDeletedAtIsNull(UUID uuid);
 
     List<Employee> findAllByDeletedAtIsNull();
+
+    Optional<Employee> findByUserAndDeletedAtIsNull(User user);
 }

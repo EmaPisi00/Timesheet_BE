@@ -20,4 +20,6 @@ public interface EmployeeService {
     void deleteByUuid(UUID uuid) throws BaseException;
 
     List<Employee> findAll();
+
+    Employee findByUser(UUID uuidUser) throws BaseException;
 }
