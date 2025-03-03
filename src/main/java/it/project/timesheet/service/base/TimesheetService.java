@@ -24,7 +24,5 @@ public interface TimesheetService {
 
     // OTHER
 
-    Timesheet findByMonthAndYear(Integer month, Integer year) throws BaseException;
-
-
+    Timesheet findByMonthAndYearAndEmployee(Integer month, Integer year, UUID uuidEmployee) throws BaseException;
 }

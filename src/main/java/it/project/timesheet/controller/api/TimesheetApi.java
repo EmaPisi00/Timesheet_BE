@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/timesheet")
+@RequestMapping("/api/v1/timesheet")
 @Tag(name = "Timesheet")
 public interface TimesheetApi {
 
@@ -30,6 +30,6 @@ public interface TimesheetApi {
     void delete(@PathVariable("uuid") UUID uuid) throws BaseException;
 
     @GetMapping("/findByMonthAndYear")
-    Timesheet findByMonthAndYear(@RequestParam("month") Integer month, @RequestParam("year") Integer year) throws BaseException;
+    Timesheet findByMonthAndYear(@RequestParam("month") Integer month, @RequestParam("year") Integer year, @RequestParam("uuid_employee") UUID uuidEmployee) throws BaseException;
 
 }

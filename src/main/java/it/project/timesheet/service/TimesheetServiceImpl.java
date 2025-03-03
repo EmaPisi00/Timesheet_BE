@@ -1,6 +1,7 @@
 package it.project.timesheet.service;
 
 import io.micrometer.common.util.StringUtils;
+import it.project.timesheet.domain.dto.TimesheetDto;
 import it.project.timesheet.domain.entity.Employee;
 import it.project.timesheet.domain.entity.Timesheet;
 import it.project.timesheet.domain.entity.User;
@@ -10,6 +11,7 @@ import it.project.timesheet.exception.custom.ObjectNotFoundException;
 import it.project.timesheet.repository.TimesheetRepository;
 import it.project.timesheet.service.base.EmployeeService;
 import it.project.timesheet.service.base.TimesheetService;
+import it.project.timesheet.utils.MonthUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -84,9 +86,12 @@ public class TimesheetServiceImpl implements TimesheetService {
     }
 
     @Override
-    public Timesheet findByMonthAndYear(Integer month, Integer year) throws BaseException {
-        Timesheet timesheet = timesheetRepository.findByMonthAndYearAndDeletedAtIsNull(month, year).
-                orElseThrow(() -> new ObjectNotFoundException("Timesheet non trovato con questo mese: " + month + " e questo anno : " + year));
+    public Timesheet findByMonthAndYearAndEmployee(Integer month, Integer year, UUID uuidEmployee) throws BaseException {
+        Employee employee = employeeService.findByUuid(uuidEmployee);
+        Timesheet timesheet = timesheetRepository.findByMonthAndYearAndEmployeeAndDeletedAtIsNull(month, year, employee).
+                orElseThrow(() -> new ObjectNotFoundException("Timesheet non trovato con questo mese: " +
+                        MonthUtils.getMonthName(month) + " e questo anno : " + year +
+                        " per questo uuidEmployee : " + uuidEmployee));
         log.info("Timesheet trovato {}", timesheet);
         return timesheet;
     }

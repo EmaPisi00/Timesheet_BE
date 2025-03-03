@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/empoloyee")
+@RequestMapping("/api/v1/empoloyee")
 @Tag(name = "Employee")
 public interface EmployeeApi {
 

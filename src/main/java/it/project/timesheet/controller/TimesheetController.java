@@ -41,7 +41,7 @@ public class TimesheetController implements TimesheetApi {
     }
 
     @Override
-    public Timesheet findByMonthAndYear(Integer month, Integer year) throws BaseException {
-        return timesheetService.findByMonthAndYear(month, year);
+    public Timesheet findByMonthAndYear(Integer month, Integer year, UUID uuidEmployee) throws BaseException {
+        return timesheetService.findByMonthAndYearAndEmployee(month, year,uuidEmployee);
     }
 }
