@@ -6,20 +6,19 @@ import it.project.timesheet.domain.dto.TimesheetDto;
 import it.project.timesheet.domain.entity.Employee;
 import it.project.timesheet.domain.entity.Presence;
 import it.project.timesheet.domain.entity.Timesheet;
-import it.project.timesheet.domain.enums.TypeDayEnum;
+import it.project.timesheet.domain.enums.StatusDayEnum;
+import it.project.timesheet.domain.enums.StatusHoursEnum;
 import it.project.timesheet.exception.common.BaseException;
 import it.project.timesheet.exception.custom.InconsistencyDatetimeException;
 import it.project.timesheet.exception.custom.ObjectFoundException;
 import it.project.timesheet.service.base.EmployeeService;
 import it.project.timesheet.service.base.PresenceService;
 import it.project.timesheet.service.base.TimesheetService;
-import it.project.timesheet.service.base.UserService;
 import it.project.timesheet.service.facade.base.TimesheetFacade;
 import it.project.timesheet.utils.DateUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
 
 import java.time.*;
@@ -80,13 +79,14 @@ public class TimesheetFacadeImpl implements TimesheetFacade {
             LocalTime holidayExitTime = LocalTime.of(0, 0);
 
             if (isWeekend || isHoliday) {
-                presenceDto.setTypeDayEnum(TypeDayEnum.HOLIDAY);
+                presenceDto.setStatusDayEnum(StatusDayEnum.HOLIDAY);
             } else {
-                presenceDto.setTypeDayEnum(TypeDayEnum.WORKDAY);
+                presenceDto.setStatusDayEnum(StatusDayEnum.WORKDAY);
                 holidayEntryTime = LocalTime.of(9, 0);
                 holidayExitTime = LocalTime.of(18, 0);
             }
 
+            presenceDto.setStatusHoursEnum(StatusHoursEnum.NORMAL_WORKING);
             presenceDto.setWorkDay(date);
             presenceDto.setEntryTime(holidayEntryTime);
             presenceDto.setExitTime(holidayExitTime);
@@ -100,79 +100,101 @@ public class TimesheetFacadeImpl implements TimesheetFacade {
 
     @Override
     public List<Presence> saveTimesheet(RequestTimesheetDto requestTimesheetDto) throws BaseException {
-        Set<LocalDate> holidays = DateUtils.getHolidays(requestTimesheetDto.getTimesheetDto().getYear());
-
-        // Verifico che l'anno ed il mese passato corrispondono con i giorni lavorativi
-        List<PresenceDto> presenceDtoList = requestTimesheetDto.getPresenceList();
-        Integer yearRequest = requestTimesheetDto.getTimesheetDto().getYear();
-        Integer monthRequest = requestTimesheetDto.getTimesheetDto().getMonth();
-
-        for (PresenceDto ithPresenceDto : presenceDtoList) {
-            LocalDate workDay = ithPresenceDto.getWorkDay();
-            Integer ithYear = workDay.getYear();
-            Integer ithMonth = workDay.getMonthValue();
-
-            if (!ithYear.equals(yearRequest) || !ithMonth.equals(monthRequest)) {
-                throw new InconsistencyDatetimeException("Anno o mese incongruente con un giorno lavorativo");
-            }
+        if (requestTimesheetDto == null || requestTimesheetDto.getPresenceList() == null || requestTimesheetDto.getTimesheetDto() == null) {
+            throw new IllegalArgumentException("RequestTimesheetDto o la lista delle presenze è null");
         }
 
-        // Recupero l'employee (Dipendente)
+        Integer yearRequest = requestTimesheetDto.getTimesheetDto().getYear();
+        Integer monthRequest = requestTimesheetDto.getTimesheetDto().getMonth();
+        Set<LocalDate> holidays = DateUtils.getHolidays(yearRequest);
+
         Employee employee = employeeService.findByUser(requestTimesheetDto.getTimesheetDto().getUser().getUuid());
+        validatePresenceDates(requestTimesheetDto.getPresenceList(), yearRequest, monthRequest);
 
         Timesheet timesheet = Timesheet.builder()
                 .year(yearRequest)
                 .month(monthRequest)
                 .employee(employee)
                 .build();
-
-        // Salvo il nuovo timesheet a DB
         timesheetService.save(timesheet);
 
         List<Presence> presenceList = new ArrayList<>();
         for (PresenceDto ithPresenceDto : requestTimesheetDto.getPresenceList()) {
-            Presence presence = new Presence();
             LocalDate day = ithPresenceDto.getWorkDay();
-            DayOfWeek dayOfWeek = day.getDayOfWeek();
-
-            // Calcolo e controllo se il giorno corrente è un giorno festivo o un weekend
-            boolean isWeekend = (dayOfWeek == DayOfWeek.SATURDAY || dayOfWeek == DayOfWeek.SUNDAY);
+            boolean isWeekend = (day.getDayOfWeek() == DayOfWeek.SATURDAY || day.getDayOfWeek() == DayOfWeek.SUNDAY);
             boolean isHoliday = holidays.contains(day);
 
-            LocalTime entryTime = ithPresenceDto.getEntryTime();
-            LocalTime exitTime = ithPresenceDto.getExitTime();
-
-            // Calcolo l'orario complessivo di lavoro e sottraggo 1 ora (per la pausa pranzo) se ha lavorato almeno 5 ore
-            Duration durationWorkDay = Duration.between(entryTime, exitTime);
-            if (durationWorkDay.toHours() > 4) {
-                durationWorkDay = durationWorkDay.minus(Duration.ofHours(1));
-            }
-
-            if ((entryTime.isAfter(exitTime) || entryTime.equals(exitTime))) {
-                throw new InconsistencyDatetimeException("Orario entrata superiore all'orario di uscita");
-            }
-
-            if ((durationWorkDay.toHours() < 4 && (!isHoliday && !isWeekend))) {
-                entryTime = LocalTime.of(0, 0);
-                exitTime = LocalTime.of(0, 0);
-                isHoliday = Boolean.TRUE;
-            }
-
-            if ((isWeekend || isHoliday) && ((durationWorkDay.toHours() > 4))) {
-                presence.setDescription(TypeDayEnum.WORKDAY.toString());
-            } else {
-                presence.setDescription(TypeDayEnum.HOLIDAY.toString());
-                entryTime = LocalTime.of(0, 0);
-                exitTime = LocalTime.of(0, 0);
-            }
-
-            presence.setWorkDay(day);
-            presence.setEntryTime(entryTime);
-            presence.setExitTime(exitTime);
-            presence.setTimesheet(timesheet);
+            Presence presence = createPresence(ithPresenceDto, day, isHoliday, isWeekend, timesheet);
             presenceList.add(presence);
         }
 
         return presenceService.saveAll(presenceList);
     }
+
+    private Presence createPresence(PresenceDto dto, LocalDate day, boolean isHoliday, boolean isWeekend, Timesheet timesheet) {
+        Presence presence = new Presence();
+        presence.setWorkDay(day);
+        presence.setEntryTime(dto.getEntryTime() != null ? dto.getEntryTime() : LocalTime.of(0, 0));
+        presence.setExitTime(dto.getExitTime() != null ? dto.getExitTime() : LocalTime.of(0, 0));
+
+        double totalHours = calculateWorkedHours(presence.getEntryTime(), presence.getExitTime());
+        presence.setTotalHours(totalHours);
+
+        if (isHoliday || isWeekend) {
+            // Setto lo status del giorno su HOLIDAY
+            presence.setStatusDayEnum(StatusDayEnum.HOLIDAY.toString());
+
+            // Lo status delle ore rimane su normale
+        } else if (dto.isIllnessed()) {
+            // Setto lo status del giorno su ILLNESS
+            presence.setStatusDayEnum(StatusDayEnum.ILLNESS.toString());
+
+            // Lo status delle ore rimane su normale
+        } else if (dto.isSmartWorking()) {
+            // Setto lo status del giorno su SMART_WORKING
+            presence.setStatusDayEnum(StatusDayEnum.SMART_WORKING.toString());
+
+            // Lo status delle ore rimane su normale
+        } else if (totalHours > 8) {
+            // Lo status rimane su WORKDAY
+            presence.setStatusDayEnum(StatusDayEnum.WORKDAY.toString());
+
+            // Lo status delle ore va su EXTRAORDINARY
+            presence.setStatusHoursEnum(StatusHoursEnum.EXTRAORDINARY.toString());
+        } else if (totalHours < 8 && totalHours >= 4) {
+            // Lo status rimane su WORKDAY
+            presence.setStatusDayEnum(StatusDayEnum.WORKDAY.toString());
+
+            // Lo status delle ore va su PERMISSION
+            presence.setStatusHoursEnum(StatusHoursEnum.PERMISSION.toString());
+        } else {
+            // Lo status rimane su WORKDAY
+            presence.setStatusDayEnum(StatusDayEnum.WORKDAY.toString());
+
+            // Lo status delle ore rimane su normale
+        }
+
+        presence.setTimesheet(timesheet);
+        return presence;
+    }
+
+    private double calculateWorkedHours(LocalTime entryTime, LocalTime exitTime) {
+        if (entryTime == null || exitTime == null || entryTime.isAfter(exitTime)) {
+            return 0.0;
+        }
+
+        Duration duration = Duration.between(entryTime, exitTime);
+        return duration.toHours() > 4 ? duration.toHours() - 1 : duration.toHours();
+    }
+
+    private void validatePresenceDates(List<PresenceDto> presenceDtoList, Integer yearRequest, Integer monthRequest) throws InconsistencyDatetimeException {
+        for (PresenceDto presence : presenceDtoList) {
+            LocalDate workDay = presence.getWorkDay();
+            if (workDay == null || !(workDay.getYear() == yearRequest) || !(workDay.getMonthValue() == monthRequest)) {
+                throw new InconsistencyDatetimeException("Anno o mese incongruente con un giorno lavorativo");
+            }
+        }
+    }
+
+
 }

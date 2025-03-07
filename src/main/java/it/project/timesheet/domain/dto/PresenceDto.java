@@ -1,7 +1,8 @@
 package it.project.timesheet.domain.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import it.project.timesheet.domain.enums.TypeDayEnum;
+import it.project.timesheet.domain.enums.StatusDayEnum;
+import it.project.timesheet.domain.enums.StatusHoursEnum;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -22,5 +23,11 @@ public class PresenceDto {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm:ss")
     private LocalTime exitTime;
 
-    private TypeDayEnum typeDayEnum;
+    private StatusDayEnum statusDayEnum;
+
+    private StatusHoursEnum statusHoursEnum;
+
+    private boolean isIllnessed;
+
+    private boolean isSmartWorking;
 }

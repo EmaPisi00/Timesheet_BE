@@ -46,8 +46,11 @@ public class PresenceServiceImpl implements PresenceService {
         if (presence.getWorkDay() == null
                 || presence.getEntryTime() == null
                 || presence.getExitTime() == null
-                || StringUtils.isBlank(presence.getDescription())) {
-            throw new BadRequestException("Giorno lavorativo | orario entrata | orario uscita | descrizione non inseriti");
+                || StringUtils.isBlank(presence.getDescription())
+                || presence.getStatusDayEnum() == null
+                || presence.getStatusHoursEnum() == null
+                || presence.getTotalHours() == null) {
+            throw new BadRequestException("Giorno lavorativo | orario entrata | orario uscita | descrizione | status giorno | status ore | totale ore non inseriti");
         }
 
         presence.setTimesheet(timesheet);
@@ -81,6 +84,9 @@ public class PresenceServiceImpl implements PresenceService {
         presenceFound.setEntryTime(presence.getEntryTime());
         presenceFound.setExitTime(presence.getExitTime());
         presenceFound.setDescription(presence.getDescription());
+        presenceFound.setStatusDayEnum(presence.getStatusDayEnum());
+        presenceFound.setStatusHoursEnum(presence.getStatusHoursEnum());
+        presenceFound.setTotalHours(presence.getTotalHours());
         presenceFound.setTimesheet(timesheet);
 
         return persistOnMysql(presenceFound);

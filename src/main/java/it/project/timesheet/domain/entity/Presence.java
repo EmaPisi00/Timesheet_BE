@@ -3,6 +3,8 @@ package it.project.timesheet.domain.entity;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import it.project.timesheet.domain.entity.common.MysqlBaseEntity;
+import it.project.timesheet.domain.enums.StatusDayEnum;
+import it.project.timesheet.domain.enums.StatusHoursEnum;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -38,4 +40,15 @@ public class Presence extends MysqlBaseEntity {
 
     @Column(name = "description")
     private String description;
+
+    @Column(name = "status_day")
+    private String statusDayEnum;
+
+    @Column(name = "status_hours")
+    private String statusHoursEnum;
+
+    @Column(name = "total_hours")
+    private Double totalHours;
+
+
 }

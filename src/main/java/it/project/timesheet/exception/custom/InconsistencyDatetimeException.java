@@ -1,8 +1,8 @@
 package it.project.timesheet.exception.custom;
 
-import it.project.timesheet.exception.InternalServerErrorException;
+import it.project.timesheet.exception.BadRequestException;
 
-public class InconsistencyDatetimeException extends InternalServerErrorException {
+public class InconsistencyDatetimeException extends BadRequestException {
 
     public InconsistencyDatetimeException(String message) {
         super(message);
