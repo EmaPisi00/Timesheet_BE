@@ -8,6 +8,7 @@ import it.project.timesheet.domain.entity.Presence;
 import it.project.timesheet.domain.entity.Timesheet;
 import it.project.timesheet.domain.enums.TypeDayEnum;
 import it.project.timesheet.exception.common.BaseException;
+import it.project.timesheet.exception.custom.InconsistencyDatetimeException;
 import it.project.timesheet.exception.custom.ObjectFoundException;
 import it.project.timesheet.service.base.EmployeeService;
 import it.project.timesheet.service.base.PresenceService;
@@ -18,12 +19,10 @@ import it.project.timesheet.utils.DateUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
 
-import java.time.DayOfWeek;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.YearMonth;
+import java.time.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -103,14 +102,29 @@ public class TimesheetFacadeImpl implements TimesheetFacade {
     public List<Presence> saveTimesheet(RequestTimesheetDto requestTimesheetDto) throws BaseException {
         Set<LocalDate> holidays = DateUtils.getHolidays(requestTimesheetDto.getTimesheetDto().getYear());
 
-        // Recupero l'employee
+        // Verifico che l'anno ed il mese passato corrispondono con i giorni lavorativi
+        List<PresenceDto> presenceDtoList = requestTimesheetDto.getPresenceList();
+        Integer yearRequest = requestTimesheetDto.getTimesheetDto().getYear();
+        Integer monthRequest = requestTimesheetDto.getTimesheetDto().getMonth();
+
+        for (PresenceDto ithPresenceDto : presenceDtoList) {
+            LocalDate workDay = ithPresenceDto.getWorkDay();
+            Integer ithYear = workDay.getYear();
+            Integer ithMonth = workDay.getMonthValue();
+
+            if (!ithYear.equals(yearRequest) || !ithMonth.equals(monthRequest)) {
+                throw new InconsistencyDatetimeException("Anno o mese incongruente con un giorno lavorativo");
+            }
+        }
+
+        // Recupero l'employee (Dipendente)
         Employee employee = employeeService.findByUser(requestTimesheetDto.getTimesheetDto().getUser().getUuid());
 
         Timesheet timesheet = Timesheet.builder()
-                    .year(requestTimesheetDto.getTimesheetDto().getYear())
-                    .month(requestTimesheetDto.getTimesheetDto().getMonth())
-                    .employee(employee)
-                    .build();
+                .year(yearRequest)
+                .month(monthRequest)
+                .employee(employee)
+                .build();
 
         // Salvo il nuovo timesheet a DB
         timesheetService.save(timesheet);
@@ -125,20 +139,36 @@ public class TimesheetFacadeImpl implements TimesheetFacade {
             boolean isWeekend = (dayOfWeek == DayOfWeek.SATURDAY || dayOfWeek == DayOfWeek.SUNDAY);
             boolean isHoliday = holidays.contains(day);
 
-            LocalTime holidayEntryTime = LocalTime.of(0, 0);
-            LocalTime holidayExitTime = LocalTime.of(0, 0);
+            LocalTime entryTime = ithPresenceDto.getEntryTime();
+            LocalTime exitTime = ithPresenceDto.getExitTime();
 
-            if (isWeekend || isHoliday) {
-                presence.setDescription(TypeDayEnum.HOLIDAY.toString());
-            } else {
+            // Calcolo l'orario complessivo di lavoro e sottraggo 1 ora (per la pausa pranzo) se ha lavorato almeno 5 ore
+            Duration durationWorkDay = Duration.between(entryTime, exitTime);
+            if (durationWorkDay.toHours() > 4) {
+                durationWorkDay = durationWorkDay.minus(Duration.ofHours(1));
+            }
+
+            if ((entryTime.isAfter(exitTime) || entryTime.equals(exitTime))) {
+                throw new InconsistencyDatetimeException("Orario entrata superiore all'orario di uscita");
+            }
+
+            if ((durationWorkDay.toHours() < 4 && (!isHoliday && !isWeekend))) {
+                entryTime = LocalTime.of(0, 0);
+                exitTime = LocalTime.of(0, 0);
+                isHoliday = Boolean.TRUE;
+            }
+
+            if ((isWeekend || isHoliday) && ((durationWorkDay.toHours() > 4))) {
                 presence.setDescription(TypeDayEnum.WORKDAY.toString());
-                holidayEntryTime = LocalTime.of(9, 0);
-                holidayExitTime = LocalTime.of(18, 0);
+            } else {
+                presence.setDescription(TypeDayEnum.HOLIDAY.toString());
+                entryTime = LocalTime.of(0, 0);
+                exitTime = LocalTime.of(0, 0);
             }
 
             presence.setWorkDay(day);
-            presence.setEntryTime(holidayEntryTime);
-            presence.setExitTime(holidayExitTime);
+            presence.setEntryTime(entryTime);
+            presence.setExitTime(exitTime);
             presence.setTimesheet(timesheet);
             presenceList.add(presence);
         }
