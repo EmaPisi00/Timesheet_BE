@@ -31,6 +31,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional(rollbackFor = BaseException.class)
 public class TimesheetFacadeImpl implements TimesheetFacade {
 
     private final TimesheetService timesheetService;
@@ -99,10 +100,9 @@ public class TimesheetFacadeImpl implements TimesheetFacade {
     }
 
     @Override
-    @Transactional(rollbackFor = BaseException.class)
     public List<Presence> saveTimesheet(RequestTimesheetDto requestTimesheetDto) throws BaseException {
         if (requestTimesheetDto == null || requestTimesheetDto.getPresenceList() == null || requestTimesheetDto.getTimesheetDto() == null) {
-            throw new IllegalArgumentException("RequestTimesheetDto o la lista delle presenze è null");
+            throw new BadRequestException("RequestTimesheetDto o la lista delle presenze è null");
         }
 
         Integer yearRequest = requestTimesheetDto.getTimesheetDto().getYear();
