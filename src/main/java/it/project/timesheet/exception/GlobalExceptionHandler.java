@@ -25,4 +25,13 @@ public class GlobalExceptionHandler {
                         internalServerErrorException.getMessage())
         );
     }
+
+    @ExceptionHandler({UnauthorizedException.class})
+    public ResponseEntity<ErrorDto> handleUnauthorizedException(UnauthorizedException unauthorizedException) {
+        return ResponseEntity.ok(
+                new ErrorDto(
+                        unauthorizedException.getCode(),
+                        unauthorizedException.getMessage())
+        );
+    }
 }

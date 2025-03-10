@@ -1,6 +1,7 @@
 package it.project.timesheet.controller;
 
 import it.project.timesheet.controller.api.UserApi;
+import it.project.timesheet.domain.dto.UserDto;
 import it.project.timesheet.domain.entity.User;
 import it.project.timesheet.exception.common.BaseException;
 import it.project.timesheet.service.base.UserService;
@@ -16,8 +17,8 @@ public class UserController implements UserApi {
     private final UserService userService;
 
     @Override
-    public User save(User user) throws BaseException {
-        return userService.save(user);
+    public User save(UserDto userDto) throws BaseException {
+        return userService.save(userDto);
     }
 
     @Override
@@ -31,8 +32,8 @@ public class UserController implements UserApi {
     }
 
     @Override
-    public User update(UUID uuid, User user) throws BaseException {
-        return userService.updateByUuid(user, uuid);
+    public User update(UUID uuid, UserDto userDto) throws BaseException {
+        return userService.updateByUuid(userDto, uuid);
     }
 
     @Override

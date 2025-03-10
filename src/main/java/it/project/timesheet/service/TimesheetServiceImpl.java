@@ -97,11 +97,7 @@ public class TimesheetServiceImpl implements TimesheetService {
     @Override
     public boolean existsTimesheetForMonthAndYearAndEmployee(Integer month, Integer year, UUID uuidEmployee) throws BaseException {
         Employee employee = employeeService.findByUuid(uuidEmployee);
-        boolean exists = timesheetRepository.findByMonthAndYearAndEmployeeAndDeletedAtIsNull(month, year, employee).isPresent();
-
-        log.info("Timesheet trovato {}", exists);
-
-        return exists; // Restituisce true se trovato, false se non trovato
+        return timesheetRepository.findByMonthAndYearAndEmployeeAndDeletedAtIsNull(month, year, employee).isPresent(); // Restituisce true se trovato, false se non trovato
     }
 
     private Timesheet persistOnMysql(Timesheet timesheet) {

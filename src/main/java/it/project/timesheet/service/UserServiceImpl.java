@@ -1,15 +1,20 @@
 package it.project.timesheet.service;
 
 import io.micrometer.common.util.StringUtils;
+import it.project.timesheet.domain.dto.UserDto;
+import it.project.timesheet.domain.entity.Employee;
 import it.project.timesheet.domain.entity.User;
 import it.project.timesheet.exception.BadRequestException;
+import it.project.timesheet.exception.UnauthorizedException;
 import it.project.timesheet.exception.common.BaseException;
+import it.project.timesheet.exception.custom.ObjectFoundException;
 import it.project.timesheet.exception.custom.ObjectNotFoundException;
 import it.project.timesheet.repository.UserRepository;
 import it.project.timesheet.service.base.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,16 +27,27 @@ import java.util.UUID;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
-    public User save(User user) throws BaseException {
-        if (user.getUuid() != null && StringUtils.isNotBlank(user.getUuid().toString())) {
-            throw new BadRequestException("UUID presente :  " + user.getUuid().toString());
+    public User save(UserDto userDto) throws BaseException {
+        if (userDto.getUuid() != null && StringUtils.isNotBlank(userDto.getUuid().toString())) {
+            throw new BadRequestException("UUID presente :  " + userDto.getUuid().toString());
         }
 
-        if (StringUtils.isBlank(user.getPassword()) || StringUtils.isBlank(user.getEmail())) {
+        if (StringUtils.isBlank(userDto.getPassword()) || StringUtils.isBlank(userDto.getEmail())) {
             throw new BadRequestException("Email o Password non inserite");
         }
+
+        if (existsUserByEmail(userDto.getEmail())) {
+            throw new ObjectFoundException("Email già esistente");
+        }
+
+        User user = new User();
+        user.setEmail(userDto.getEmail());
+        user.setPassword(passwordEncoder.encode(userDto.getPassword()));
+
+
         return persistOnMysql(user);
     }
 
@@ -44,15 +60,15 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User updateByUuid(User user, UUID uuid) throws BaseException {
+    public User updateByUuid(UserDto userDto, UUID uuid) throws BaseException {
         User userFound = findByUuid(uuid);
 
-        if (StringUtils.isBlank(user.getPassword()) || StringUtils.isBlank(user.getEmail())) {
+        if (StringUtils.isBlank(userDto.getPassword()) || StringUtils.isBlank(userDto.getEmail())) {
             throw new BadRequestException("Email o Password non inserite");
         }
 
-        userFound.setPassword(user.getPassword());
-        userFound.setEmail(user.getEmail());
+        userFound.setPassword(passwordEncoder.encode(userDto.getPassword()));
+        userFound.setEmail(userDto.getEmail());
 
         return persistOnMysql(userFound);
     }
@@ -70,6 +86,32 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<User> findAll() {
         return userRepository.findAll();
+    }
+
+    @Override
+    public User findByEmail(String email) throws BaseException {
+        User user = userRepository.findByEmailAndDeletedAtIsNull(email).orElseThrow(() -> new ObjectNotFoundException("User non trovato con questa email: " + email));
+        log.info("User trovato {}", user);
+        return user;
+    }
+
+    @Override
+    public User login(String email, String password) throws BaseException {
+        User user = findByEmail(email);
+
+        if (user == null) {
+            throw new UnauthorizedException("Utente non trovato");
+        }
+
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw new UnauthorizedException("Password non corretta");
+        }
+
+        return user;
+    }
+
+    private boolean existsUserByEmail(String email) {
+        return userRepository.findByEmailAndDeletedAtIsNull(email).isPresent(); // Restituisce true se trovato, false se non trovato
     }
 
     private User persistOnMysql(User user) {

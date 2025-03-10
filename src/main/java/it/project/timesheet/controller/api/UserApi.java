@@ -2,6 +2,7 @@ package it.project.timesheet.controller.api;
 
 
 import io.swagger.v3.oas.annotations.tags.Tag;
+import it.project.timesheet.domain.dto.UserDto;
 import it.project.timesheet.domain.entity.User;
 import it.project.timesheet.exception.common.BaseException;
 import org.springframework.web.bind.annotation.*;
@@ -15,7 +16,7 @@ import java.util.UUID;
 public interface UserApi {
 
     @PostMapping
-    User save(@RequestBody User user) throws BaseException;
+    User save(@RequestBody UserDto userDto) throws BaseException;
 
     @GetMapping
     List<User> findAll();
@@ -24,9 +25,8 @@ public interface UserApi {
     User findById(@PathVariable("uuid") UUID uuid) throws BaseException;
 
     @PutMapping("/{uuid}")
-    User update(@PathVariable("uuid") UUID uuid, @RequestBody User user) throws BaseException;
+    User update(@PathVariable("uuid") UUID uuid, @RequestBody UserDto userDto) throws BaseException;
 
     @DeleteMapping("/{uuid}")
     void delete(@PathVariable("uuid") UUID uuid) throws BaseException;
-
 }
