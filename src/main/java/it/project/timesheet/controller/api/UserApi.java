@@ -30,6 +30,7 @@ public interface UserApi {
      **/
 
     @PostMapping("/register")
+
     User register(@RequestBody UserRequestDto userRequestDto) throws BaseException;
 
     @PostMapping("/login")

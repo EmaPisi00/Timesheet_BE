@@ -1,5 +1,6 @@
 package it.project.timesheet.domain.dto.request;
 
+import it.project.timesheet.domain.enums.RoleEnum;
 import lombok.*;
 
 import java.util.UUID;
@@ -13,4 +14,5 @@ public class UserRequestDto {
     private UUID uuid;
     private String email;
     private String password;
+    private RoleEnum role;
 }

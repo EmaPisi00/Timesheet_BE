@@ -25,6 +25,7 @@ public class UserDetailService implements UserDetailsService {
             return org.springframework.security.core.userdetails.User.builder()
                     .username(userFound.getEmail())
                     .password(userFound.getPassword())
+                    .roles(userFound.getRole())
                     .build();
         } else {
             throw new UsernameNotFoundException(username);

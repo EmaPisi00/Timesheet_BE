@@ -26,7 +26,6 @@ public class SecurityConfiguration {
 
     private final UserDetailService userDetailService;
 
-
     // IN QUESTO MODO RENDO LO SWAGGER PUBBLICO E ACCESSIBILE DA TUTTI
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthFilter) throws Exception {
@@ -35,7 +34,8 @@ public class SecurityConfiguration {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> {
                     auth.requestMatchers("/swagger-ui/**", "/v3/api-docs*/**").permitAll();
-                    auth.requestMatchers("/api/v1/user/findAll", "/api/v1/user/register", "/api/v1/user/login").permitAll();
+                    auth.requestMatchers("/api/v1/user/findAll", "/api/v1/user/login").permitAll();
+                    auth.requestMatchers("/api/v1/user/register").hasRole("ADMIN");
 
                     // 👉 Tutte le altre API necessitano autenticazione
                     auth.requestMatchers("/api/v1/user/**").authenticated();  // Tutte le richieste sotto /user sono protette

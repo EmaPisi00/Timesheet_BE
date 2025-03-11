@@ -1,5 +1,6 @@
 package it.project.timesheet.domain.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import it.project.timesheet.domain.entity.common.MysqlBaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -26,4 +27,6 @@ public class User extends MysqlBaseEntity {
     @Column(name = "password")
     private String password;
 
+    @Column(name = "role")
+    private String role;
 }

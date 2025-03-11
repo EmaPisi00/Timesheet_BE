@@ -5,6 +5,7 @@ import it.project.timesheet.configuration.JwtTokenConfiguration;
 import it.project.timesheet.domain.dto.request.UserRequestDto;
 import it.project.timesheet.domain.dto.response.AuthResponseDto;
 import it.project.timesheet.domain.entity.User;
+import it.project.timesheet.domain.enums.RoleEnum;
 import it.project.timesheet.exception.BadRequestException;
 import it.project.timesheet.exception.common.BaseException;
 import it.project.timesheet.exception.custom.ObjectFoundException;
@@ -42,13 +43,14 @@ public class UserServiceImpl implements UserService {
         }
 
         if (StringUtils.isBlank(user.getPassword()) || StringUtils.isBlank(user.getEmail())) {
-            throw new BadRequestException("Email o Password non inserite");
+            throw new BadRequestException("Email, Password o Ruolo non inseriti");
         }
 
         if (existsUserByEmail(user.getEmail())) {
             throw new ObjectFoundException("Email già esistente");
         }
 
+        user.setRole(RoleEnum.USER.toString());
         return persistOnMysql(user);
     }
 
