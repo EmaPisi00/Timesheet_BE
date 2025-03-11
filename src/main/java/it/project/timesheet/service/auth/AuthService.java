@@ -15,8 +15,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +31,7 @@ public class AuthService {
     private final JwtTokenConfiguration jwtTokenConfiguration;
     private final UserDetailsService userDetailsService;
     private final PasswordEncoder passwordEncoder;
+    private final UserService userService;
 
     public AuthResponseDto login(UserRequestDto userRequestDto) throws BaseException {
         Authentication authentication = authenticationProvider.authenticate(
@@ -49,7 +53,11 @@ public class AuthService {
         User user = new User();
         user.setEmail(userRequestDto.getEmail());
         user.setPassword(passwordEncoder.encode(userRequestDto.getPassword()));
-        return user;
+        return userService.save(user);
+    }
+
+    public boolean validateToken(String token) {
+        return jwtTokenConfiguration.validateToken(token);
     }
 
 }

@@ -19,7 +19,6 @@ public class UserController implements UserApi {
     private final UserService userService;
     private final AuthService authService;
 
-
     @Override
     public List<User> findAll() {
         return userService.findAll();
@@ -47,6 +46,6 @@ public class UserController implements UserApi {
 
     @Override
     public boolean verify(String token) {
-        return false;
+        return authService.validateToken(token);
     }
 }
