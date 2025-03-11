@@ -10,6 +10,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,6 +20,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
 
 import java.util.Optional;
 
@@ -29,25 +32,28 @@ public class AuthService {
 
     private final AuthenticationProvider authenticationProvider;
     private final JwtTokenConfiguration jwtTokenConfiguration;
-    private final UserDetailsService userDetailsService;
     private final PasswordEncoder passwordEncoder;
     private final UserService userService;
 
-    public AuthResponseDto login(UserRequestDto userRequestDto) throws BaseException {
-        Authentication authentication = authenticationProvider.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        userRequestDto.getEmail(),
-                        userRequestDto.getPassword()
-                )
-        );
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        UserDetails userDetails = userDetailsService.loadUserByUsername(userRequestDto.getEmail());
+    public AuthResponseDto login(UserRequestDto userRequestDto) {
+        try {
+            Authentication authentication = authenticationProvider.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            userRequestDto.getEmail(),
+                            userRequestDto.getPassword()
+                    )
+            );
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 
-        AuthResponseDto authResponseDto = new AuthResponseDto();
-        authResponseDto.setToken(jwtTokenConfiguration.generateToken(userDetails));
-
-        return authResponseDto;
+            return new AuthResponseDto(jwtTokenConfiguration.generateToken(userDetails));
+        } catch (BadCredentialsException e) {
+            throw new UsernameNotFoundException("Credenziali non valide");
+        } catch (DisabledException e) {
+            throw new UsernameNotFoundException("Account disabilitato");
+        }
     }
+
 
     public User register(UserRequestDto userRequestDto) throws BaseException {
         User user = new User();
