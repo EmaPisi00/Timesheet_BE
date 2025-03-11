@@ -6,6 +6,11 @@ import it.project.timesheet.domain.entity.User;
 import it.project.timesheet.exception.common.BaseException;
 import it.project.timesheet.service.base.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -15,6 +20,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UserController implements UserApi {
     private final UserService userService;
+    private final AuthenticationProvider authenticationProvider;
 
     @Override
     public User save(UserDto userDto) throws BaseException {
@@ -39,5 +45,23 @@ public class UserController implements UserApi {
     @Override
     public void delete(UUID uuid) throws BaseException {
         userService.deleteByUuid(uuid);
+    }
+
+    @Override
+    public String login(UserDto userDto) throws BaseException {
+
+        Authentication authentication = authenticationProvider.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        userDto.getEmail(),
+                        userDto.getPassword()
+                )
+        );
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        System.out.println(authentication.getCredentials());
+
+        System.out.println(authentication.getPrincipal().toString());
+        return "";
     }
 }

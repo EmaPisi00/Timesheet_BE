@@ -2,7 +2,6 @@ package it.project.timesheet.service;
 
 import io.micrometer.common.util.StringUtils;
 import it.project.timesheet.domain.dto.UserDto;
-import it.project.timesheet.domain.entity.Employee;
 import it.project.timesheet.domain.entity.User;
 import it.project.timesheet.exception.BadRequestException;
 import it.project.timesheet.exception.UnauthorizedException;
@@ -14,6 +13,9 @@ import it.project.timesheet.service.base.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -24,10 +26,9 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 @Transactional
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl implements UserService, UserDetailsService {
 
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
 
     @Override
     public User save(UserDto userDto) throws BaseException {
@@ -45,7 +46,7 @@ public class UserServiceImpl implements UserService {
 
         User user = new User();
         user.setEmail(userDto.getEmail());
-        user.setPassword(passwordEncoder.encode(userDto.getPassword()));
+        user.setPassword(userDto.getPassword());
 
 
         return persistOnMysql(user);
@@ -67,7 +68,7 @@ public class UserServiceImpl implements UserService {
             throw new BadRequestException("Email o Password non inserite");
         }
 
-        userFound.setPassword(passwordEncoder.encode(userDto.getPassword()));
+        userFound.setPassword(userDto.getPassword());
         userFound.setEmail(userDto.getEmail());
 
         return persistOnMysql(userFound);
@@ -95,21 +96,6 @@ public class UserServiceImpl implements UserService {
         return user;
     }
 
-    @Override
-    public User login(String email, String password) throws BaseException {
-        User user = findByEmail(email);
-
-        if (user == null) {
-            throw new UnauthorizedException("Utente non trovato");
-        }
-
-        if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new UnauthorizedException("Password non corretta");
-        }
-
-        return user;
-    }
-
     private boolean existsUserByEmail(String email) {
         return userRepository.findByEmailAndDeletedAtIsNull(email).isPresent(); // Restituisce true se trovato, false se non trovato
     }
@@ -118,5 +104,15 @@ public class UserServiceImpl implements UserService {
         user = userRepository.save(user);
         log.info("User salvato {}", user);
         return user;
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        return userRepository.findByEmailAndDeletedAtIsNull(email)
+                .map(user -> org.springframework.security.core.userdetails.User.builder()
+                        .username(user.getEmail())
+                        .password(user.getPassword())
+                        .build())
+                .orElseThrow(() -> new UsernameNotFoundException("User non trovato con email: " + email));
     }
 }

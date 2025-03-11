@@ -29,4 +29,7 @@ public interface UserApi {
 
     @DeleteMapping("/{uuid}")
     void delete(@PathVariable("uuid") UUID uuid) throws BaseException;
+
+    @PostMapping("/login")
+    String login(@RequestBody UserDto userDto) throws BaseException;
 }

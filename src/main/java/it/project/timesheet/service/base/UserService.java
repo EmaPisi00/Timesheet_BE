@@ -24,5 +24,4 @@ public interface UserService {
 
     User findByEmail(String email) throws BaseException;
 
-    User login(String email, String password) throws BaseException;
 }
