@@ -4,7 +4,6 @@ import io.micrometer.common.util.StringUtils;
 import it.project.timesheet.domain.dto.UserDto;
 import it.project.timesheet.domain.entity.User;
 import it.project.timesheet.exception.BadRequestException;
-import it.project.timesheet.exception.UnauthorizedException;
 import it.project.timesheet.exception.common.BaseException;
 import it.project.timesheet.exception.custom.ObjectFoundException;
 import it.project.timesheet.exception.custom.ObjectNotFoundException;
@@ -13,10 +12,6 @@ import it.project.timesheet.service.base.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -26,7 +21,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 @Transactional
-public class UserServiceImpl implements UserService, UserDetailsService {
+public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
 
@@ -104,15 +99,5 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         user = userRepository.save(user);
         log.info("User salvato {}", user);
         return user;
-    }
-
-    @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        return userRepository.findByEmailAndDeletedAtIsNull(email)
-                .map(user -> org.springframework.security.core.userdetails.User.builder()
-                        .username(user.getEmail())
-                        .password(user.getPassword())
-                        .build())
-                .orElseThrow(() -> new UsernameNotFoundException("User non trovato con email: " + email));
     }
 }

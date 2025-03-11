@@ -2,7 +2,6 @@ package it.project.timesheet.service.base;
 
 import it.project.timesheet.domain.dto.UserDto;
 import it.project.timesheet.domain.entity.User;
-import it.project.timesheet.exception.UnauthorizedException;
 import it.project.timesheet.exception.common.BaseException;
 import org.springframework.stereotype.Service;
 

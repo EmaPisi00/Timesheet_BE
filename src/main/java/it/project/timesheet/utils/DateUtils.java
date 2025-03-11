@@ -1,7 +1,9 @@
 package it.project.timesheet.utils;
 
 import java.text.DateFormatSymbols;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -29,6 +31,14 @@ public class DateUtils {
         return MONTH_NAMES[month - 1];
     }
 
+
+    public static String convertDateToString(Date date) {
+        // Definisci il formato della data
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+        // Restituisci la data come stringa formattata
+        return sdf.format(date);
+    }
 
 
 }

@@ -1,6 +1,6 @@
 package it.project.timesheet.exception;
 
-import it.project.timesheet.domain.dto.ErrorDto;
+import it.project.timesheet.domain.dto.response.ErrorResponseDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -9,27 +9,27 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler({BadRequestException.class})
-    public ResponseEntity<ErrorDto> handleBadRequestException(BadRequestException badRequestException) {
+    public ResponseEntity<ErrorResponseDto> handleBadRequestException(BadRequestException badRequestException) {
         return ResponseEntity.ok(
-                new ErrorDto(
+                new ErrorResponseDto(
                         badRequestException.getCode(),
                         badRequestException.getMessage())
         );
     }
 
     @ExceptionHandler({InternalServerErrorException.class})
-    public ResponseEntity<ErrorDto> handleInternalServerErrorException(InternalServerErrorException internalServerErrorException) {
+    public ResponseEntity<ErrorResponseDto> handleInternalServerErrorException(InternalServerErrorException internalServerErrorException) {
         return ResponseEntity.ok(
-                new ErrorDto(
+                new ErrorResponseDto(
                         internalServerErrorException.getCode(),
                         internalServerErrorException.getMessage())
         );
     }
 
     @ExceptionHandler({UnauthorizedException.class})
-    public ResponseEntity<ErrorDto> handleUnauthorizedException(UnauthorizedException unauthorizedException) {
+    public ResponseEntity<ErrorResponseDto> handleUnauthorizedException(UnauthorizedException unauthorizedException) {
         return ResponseEntity.ok(
-                new ErrorDto(
+                new ErrorResponseDto(
                         unauthorizedException.getCode(),
                         unauthorizedException.getMessage())
         );

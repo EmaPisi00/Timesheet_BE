@@ -1,6 +1,6 @@
 package it.project.timesheet.configuration;
 
-import it.project.timesheet.service.UserServiceImpl;
+import it.project.timesheet.service.auth.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,7 +23,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfiguration {
 
-    private final UserServiceImpl userService;
+    private final AuthService authService;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -61,13 +61,13 @@ public class SecurityConfiguration {
 
     @Bean
     public UserDetailsService userDetailsServiceTest() {
-        return userService;
+        return authService;
     }
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(userService);
+        authProvider.setUserDetailsService(authService);
         authProvider.setPasswordEncoder(encoder());
         return authProvider;
     }

@@ -1,18 +1,14 @@
 package it.project.timesheet.service;
 
 import it.project.timesheet.domain.dto.PresenceDto;
-import it.project.timesheet.domain.dto.RequestTimesheetDto;
+import it.project.timesheet.domain.dto.request.TimesheetRequestDto;
 import it.project.timesheet.domain.dto.TimesheetDto;
 import it.project.timesheet.domain.entity.Employee;
-import it.project.timesheet.domain.entity.Presence;
 import it.project.timesheet.domain.entity.Timesheet;
 import it.project.timesheet.domain.entity.User;
 import it.project.timesheet.domain.enums.StatusDayEnum;
 import it.project.timesheet.domain.enums.StatusHoursEnum;
 import it.project.timesheet.exception.BadRequestException;
-import it.project.timesheet.exception.common.BaseException;
-import it.project.timesheet.exception.custom.InconsistencyDatetimeException;
-import it.project.timesheet.exception.custom.ObjectFoundException;
 import it.project.timesheet.repository.TimesheetRepository;
 import it.project.timesheet.service.facade.TimesheetFacadeImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,16 +20,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class TimesheetServiceTest {
@@ -53,7 +46,7 @@ public class TimesheetServiceTest {
     @InjectMocks
     private TimesheetFacadeImpl timesheetFacadeImpl;
 
-    private RequestTimesheetDto requestTimesheetDto;
+    private TimesheetRequestDto timesheetRequestDto;
 
     @Test
     void getTimesheet() {
@@ -117,9 +110,9 @@ public class TimesheetServiceTest {
         presenceDto.setSmartWorking(false);
 
         // Crea il DTO della richiesta con la lista delle presenze
-        requestTimesheetDto = new RequestTimesheetDto();
-        requestTimesheetDto.setTimesheetDto(timesheetDto);
-        requestTimesheetDto.setPresenceList(List.of(presenceDto));
+        timesheetRequestDto = new TimesheetRequestDto();
+        timesheetRequestDto.setTimesheetDto(timesheetDto);
+        timesheetRequestDto.setPresenceList(List.of(presenceDto));
     }
 
     @Test

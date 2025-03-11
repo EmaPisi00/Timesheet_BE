@@ -32,4 +32,7 @@ public interface UserApi {
 
     @PostMapping("/login")
     String login(@RequestBody UserDto userDto) throws BaseException;
+
+    @GetMapping("/verify")
+    boolean verify(@RequestParam("token") String token) throws BaseException;
 }

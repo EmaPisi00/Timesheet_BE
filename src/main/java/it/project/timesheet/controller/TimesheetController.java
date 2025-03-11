@@ -1,8 +1,7 @@
 package it.project.timesheet.controller;
 
 import it.project.timesheet.controller.api.TimesheetApi;
-import it.project.timesheet.domain.dto.RequestTimesheetDto;
-import it.project.timesheet.domain.dto.TimesheetDto;
+import it.project.timesheet.domain.dto.request.TimesheetRequestDto;
 import it.project.timesheet.domain.entity.Presence;
 import it.project.timesheet.domain.entity.Timesheet;
 import it.project.timesheet.exception.common.BaseException;
@@ -51,12 +50,13 @@ public class TimesheetController implements TimesheetApi {
     }
 
     @Override
-    public RequestTimesheetDto generateTimesheet(Integer month, Integer year, UUID uuidEmployee) throws BaseException {
+    public TimesheetRequestDto generateTimesheet(Integer month, Integer year, UUID uuidEmployee) throws BaseException {
         return timesheetFacade.generateTimesheet(month, year, uuidEmployee);
     }
 
     @Override
-    public List<Presence> saveTimesheet(RequestTimesheetDto requestTimesheetDto) throws BaseException {
-        return timesheetFacade.saveTimesheet(requestTimesheetDto);
+    public List<Presence> saveTimesheet(TimesheetRequestDto timesheetRequestDto) throws BaseException {
+        return timesheetFacade.saveTimesheet(timesheetRequestDto);
     }
+
 }

@@ -1,6 +1,7 @@
-package it.project.timesheet.domain.dto;
+package it.project.timesheet.domain.dto.request;
 
-import it.project.timesheet.domain.entity.Timesheet;
+import it.project.timesheet.domain.dto.PresenceDto;
+import it.project.timesheet.domain.dto.TimesheetDto;
 import lombok.*;
 
 import java.util.List;
@@ -10,7 +11,7 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 @EqualsAndHashCode(callSuper = false)
-public class RequestTimesheetDto {
+public class TimesheetRequestDto {
 
     private TimesheetDto timesheetDto;
 

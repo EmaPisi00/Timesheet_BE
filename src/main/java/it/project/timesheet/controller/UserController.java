@@ -1,16 +1,18 @@
 package it.project.timesheet.controller;
 
+import it.project.timesheet.configuration.JwtTokenConfiguration;
 import it.project.timesheet.controller.api.UserApi;
 import it.project.timesheet.domain.dto.UserDto;
 import it.project.timesheet.domain.entity.User;
 import it.project.timesheet.exception.common.BaseException;
+import it.project.timesheet.service.auth.AuthService;
 import it.project.timesheet.service.base.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -21,6 +23,8 @@ import java.util.UUID;
 public class UserController implements UserApi {
     private final UserService userService;
     private final AuthenticationProvider authenticationProvider;
+    private final AuthService authService;
+    private final JwtTokenConfiguration jwtUtil;
 
     @Override
     public User save(UserDto userDto) throws BaseException {
@@ -59,9 +63,13 @@ public class UserController implements UserApi {
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        System.out.println(authentication.getCredentials());
+        UserDetails userDetails = authService.loadUserByUsername(userDto.getEmail());
+        return jwtUtil.generateToken(userDetails);
+    }
 
-        System.out.println(authentication.getPrincipal().toString());
-        return "";
+    @Override
+    public boolean verify(String token) throws BaseException {
+        UserDetails userDetails = authService.loadUserByUsername("test1@gmail.com");
+        return jwtUtil.validateToken(token, userDetails);
     }
 }

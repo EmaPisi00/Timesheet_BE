@@ -1,4 +1,4 @@
-package it.project.timesheet.domain.dto;
+package it.project.timesheet.domain.dto.response;
 
 import lombok.*;
 
@@ -7,7 +7,7 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 @EqualsAndHashCode(callSuper = false)
-public class ErrorDto {
+public class ErrorResponseDto {
 
     private int code;
     private String message;

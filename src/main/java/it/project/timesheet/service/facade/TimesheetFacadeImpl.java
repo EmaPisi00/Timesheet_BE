@@ -1,10 +1,9 @@
 package it.project.timesheet.service.facade;
 
 import it.project.timesheet.domain.dto.PresenceDto;
-import it.project.timesheet.domain.dto.RequestTimesheetDto;
+import it.project.timesheet.domain.dto.request.TimesheetRequestDto;
 import it.project.timesheet.domain.dto.TimesheetDto;
 import it.project.timesheet.domain.entity.Employee;
-import it.project.timesheet.domain.entity.Presence;
 import it.project.timesheet.domain.entity.Timesheet;
 import it.project.timesheet.domain.enums.StatusDayEnum;
 import it.project.timesheet.domain.enums.StatusHoursEnum;
@@ -39,9 +38,9 @@ public class TimesheetFacadeImpl implements TimesheetFacade {
     private final PresenceService presenceService;
 
     @Override
-    public RequestTimesheetDto generateTimesheet(Integer month, Integer year, UUID uuidEmployee) throws BaseException {
+    public TimesheetRequestDto generateTimesheet(Integer month, Integer year, UUID uuidEmployee) throws BaseException {
         Set<LocalDate> holidays = DateUtils.getHolidays(year);
-        RequestTimesheetDto requestTimesheetDto = new RequestTimesheetDto();
+        TimesheetRequestDto timesheetRequestDto = new TimesheetRequestDto();
 
         // Ricerca per mese e anno per vedere se esiste già un timesheet con quel mese ed anno
         if (timesheetService.existsTimesheetForMonthAndYearAndEmployee(month, year, uuidEmployee)) {
@@ -58,7 +57,7 @@ public class TimesheetFacadeImpl implements TimesheetFacade {
                 .surname(employee.getSurname())
                 .build();
 
-        requestTimesheetDto.setTimesheetDto(timesheetDto);
+        timesheetRequestDto.setTimesheetDto(timesheetDto);
 
         // Ciclo tutti i giorni del mese
         YearMonth yearMonth = YearMonth.of(year, month);
@@ -94,22 +93,22 @@ public class TimesheetFacadeImpl implements TimesheetFacade {
             presenceList.add(presenceDto);
         }
 
-        requestTimesheetDto.setPresenceList(presenceList);
+        timesheetRequestDto.setPresenceList(presenceList);
 
-        return requestTimesheetDto;
+        return timesheetRequestDto;
     }
 
     @Override
-    public List<Presence> saveTimesheet(RequestTimesheetDto requestTimesheetDto) throws BaseException {
-        if (requestTimesheetDto == null || requestTimesheetDto.getPresenceList() == null || requestTimesheetDto.getTimesheetDto() == null) {
+    public List<it.project.timesheet.domain.entity.Presence> saveTimesheet(TimesheetRequestDto timesheetRequestDto) throws BaseException {
+        if (timesheetRequestDto == null || timesheetRequestDto.getPresenceList() == null || timesheetRequestDto.getTimesheetDto() == null) {
             throw new BadRequestException("RequestTimesheetDto o la lista delle presenze è null");
         }
 
-        Integer yearRequest = requestTimesheetDto.getTimesheetDto().getYear();
-        Integer monthRequest = requestTimesheetDto.getTimesheetDto().getMonth();
+        Integer yearRequest = timesheetRequestDto.getTimesheetDto().getYear();
+        Integer monthRequest = timesheetRequestDto.getTimesheetDto().getMonth();
         Set<LocalDate> holidays = DateUtils.getHolidays(yearRequest);
 
-        Employee employee = employeeService.findByUser(requestTimesheetDto.getTimesheetDto().getUser().getUuid());
+        Employee employee = employeeService.findByUser(timesheetRequestDto.getTimesheetDto().getUser().getUuid());
 
         // Ricerca per mese e anno per vedere se esiste già un timesheet con quel mese ed anno
         if (timesheetService.existsTimesheetForMonthAndYearAndEmployee(monthRequest, yearRequest, employee.getUuid())) {
@@ -118,7 +117,7 @@ public class TimesheetFacadeImpl implements TimesheetFacade {
                     + employee.getUuid().toString());
         }
 
-        validatePresenceDates(requestTimesheetDto.getPresenceList(), yearRequest, monthRequest);
+        validatePresenceDates(timesheetRequestDto.getPresenceList(), yearRequest, monthRequest);
 
         Timesheet timesheet = Timesheet.builder()
                 .year(yearRequest)
@@ -127,8 +126,8 @@ public class TimesheetFacadeImpl implements TimesheetFacade {
                 .build();
         timesheetService.save(timesheet);
 
-        List<Presence> presenceList = new ArrayList<>();
-        for (PresenceDto ithPresenceDto : requestTimesheetDto.getPresenceList()) {
+        List<it.project.timesheet.domain.entity.Presence> presenceList = new ArrayList<>();
+        for (PresenceDto ithPresenceDto : timesheetRequestDto.getPresenceList()) {
             LocalDate day = ithPresenceDto.getWorkDay();
             boolean isWeekend = (day.getDayOfWeek() == DayOfWeek.SATURDAY || day.getDayOfWeek() == DayOfWeek.SUNDAY);
             boolean isHoliday = holidays.contains(day);
@@ -137,15 +136,15 @@ public class TimesheetFacadeImpl implements TimesheetFacade {
                 throw new BadRequestException("Errore sono settati a TRUE sia lo stato MALATTIA che SMART_WORKING");
             }
 
-            Presence presence = createPresence(ithPresenceDto, day, isHoliday, isWeekend, timesheet);
+            it.project.timesheet.domain.entity.Presence presence = createPresence(ithPresenceDto, day, isHoliday, isWeekend, timesheet);
             presenceList.add(presence);
         }
 
         return presenceService.saveAll(presenceList);
     }
 
-    private Presence createPresence(PresenceDto dto, LocalDate day, boolean isHoliday, boolean isWeekend, Timesheet timesheet) {
-        Presence presence = new Presence();
+    private it.project.timesheet.domain.entity.Presence createPresence(PresenceDto dto, LocalDate day, boolean isHoliday, boolean isWeekend, Timesheet timesheet) {
+        it.project.timesheet.domain.entity.Presence presence = new it.project.timesheet.domain.entity.Presence();
         presence.setWorkDay(day);
         presence.setEntryTime(defaultTime(dto.getEntryTime()));
         presence.setExitTime(defaultTime(dto.getExitTime()));
@@ -184,7 +183,7 @@ public class TimesheetFacadeImpl implements TimesheetFacade {
     }
 
     // Metodo di utility per evitare ripetizioni
-    private void setZeroTime(Presence presence) {
+    private void setZeroTime(it.project.timesheet.domain.entity.Presence presence) {
         presence.setEntryTime(LocalTime.of(0, 0));
         presence.setExitTime(LocalTime.of(0, 0));
     }
