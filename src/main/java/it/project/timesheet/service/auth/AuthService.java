@@ -27,6 +27,7 @@ public class AuthService {
     private final AuthenticationProvider authenticationProvider;
     private final JwtTokenConfiguration jwtTokenConfiguration;
     private final UserDetailsService userDetailsService;
+    private final PasswordEncoder passwordEncoder;
 
     public AuthResponseDto login(UserRequestDto userRequestDto) throws BaseException {
         Authentication authentication = authenticationProvider.authenticate(
@@ -42,6 +43,13 @@ public class AuthService {
         authResponseDto.setToken(jwtTokenConfiguration.generateToken(userDetails));
 
         return authResponseDto;
+    }
+
+    public User register(UserRequestDto userRequestDto) throws BaseException {
+        User user = new User();
+        user.setEmail(userRequestDto.getEmail());
+        user.setPassword(passwordEncoder.encode(userRequestDto.getPassword()));
+        return user;
     }
 
 }

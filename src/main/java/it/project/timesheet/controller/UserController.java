@@ -37,12 +37,12 @@ public class UserController implements UserApi {
 
     @Override
     public User register(UserRequestDto userRequestDto) throws BaseException {
-        return null;
+        return authService.register(userRequestDto);
     }
 
     @Override
     public AuthResponseDto login(UserRequestDto userRequestDto) throws BaseException {
-        return null;
+        return authService.login(userRequestDto);
     }
 
     @Override
