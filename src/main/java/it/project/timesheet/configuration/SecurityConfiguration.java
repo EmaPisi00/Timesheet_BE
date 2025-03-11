@@ -1,6 +1,6 @@
 package it.project.timesheet.configuration;
 
-import it.project.timesheet.service.auth.AuthService;
+import it.project.timesheet.service.auth.UserDetailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,18 +17,17 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
-
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfiguration {
 
-    private final AuthService authService;
+    private final UserDetailService userDetailService;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // 🔥 ABILITA CORS
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/swagger-ui/**", "/api/v1/**").permitAll()
@@ -39,12 +38,10 @@ public class SecurityConfiguration {
         return http.build();
     }
 
-    // 🔥 Metodo che fornisce la configurazione CORS a Spring Security
     @Bean
     public UrlBasedCorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-
-        config.setAllowedOrigins(List.of("http://127.0.0.1:5500")); // 🔥 SENZA "/**"
+        config.setAllowedOrigins(List.of("http://127.0.0.1:5500"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
@@ -55,21 +52,20 @@ public class SecurityConfiguration {
     }
 
     @Bean
-    public PasswordEncoder encoder() {
-        return new BCryptPasswordEncoder();
-    }
-
-    @Bean
-    public UserDetailsService userDetailsServiceTest() {
-        return authService;
+    public UserDetailsService userDetailsService() {
+        return userDetailService;
     }
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(authService);
-        authProvider.setPasswordEncoder(encoder());
-        return authProvider;
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(userDetailService);
+        provider.setPasswordEncoder(passwordEncoder());
+        return provider;
     }
 
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 }

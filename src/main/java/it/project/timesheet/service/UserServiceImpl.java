@@ -1,7 +1,9 @@
 package it.project.timesheet.service;
 
 import io.micrometer.common.util.StringUtils;
-import it.project.timesheet.domain.dto.UserDto;
+import it.project.timesheet.configuration.JwtTokenConfiguration;
+import it.project.timesheet.domain.dto.request.UserRequestDto;
+import it.project.timesheet.domain.dto.response.AuthResponseDto;
 import it.project.timesheet.domain.entity.User;
 import it.project.timesheet.exception.BadRequestException;
 import it.project.timesheet.exception.common.BaseException;
@@ -12,9 +14,17 @@ import it.project.timesheet.service.base.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -26,23 +36,18 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
     @Override
-    public User save(UserDto userDto) throws BaseException {
-        if (userDto.getUuid() != null && StringUtils.isNotBlank(userDto.getUuid().toString())) {
-            throw new BadRequestException("UUID presente :  " + userDto.getUuid().toString());
+    public User save(User user) throws BaseException {
+        if (user.getUuid() != null && StringUtils.isNotBlank(user.getUuid().toString())) {
+            throw new BadRequestException("UUID presente :  " + user.getUuid().toString());
         }
 
-        if (StringUtils.isBlank(userDto.getPassword()) || StringUtils.isBlank(userDto.getEmail())) {
+        if (StringUtils.isBlank(user.getPassword()) || StringUtils.isBlank(user.getEmail())) {
             throw new BadRequestException("Email o Password non inserite");
         }
 
-        if (existsUserByEmail(userDto.getEmail())) {
+        if (existsUserByEmail(user.getEmail())) {
             throw new ObjectFoundException("Email già esistente");
         }
-
-        User user = new User();
-        user.setEmail(userDto.getEmail());
-        user.setPassword(userDto.getPassword());
-
 
         return persistOnMysql(user);
     }
@@ -56,15 +61,15 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User updateByUuid(UserDto userDto, UUID uuid) throws BaseException {
+    public User updateByUuid(User user, UUID uuid) throws BaseException {
         User userFound = findByUuid(uuid);
 
-        if (StringUtils.isBlank(userDto.getPassword()) || StringUtils.isBlank(userDto.getEmail())) {
+        if (StringUtils.isBlank(user.getPassword()) || StringUtils.isBlank(user.getEmail())) {
             throw new BadRequestException("Email o Password non inserite");
         }
 
-        userFound.setPassword(userDto.getPassword());
-        userFound.setEmail(userDto.getEmail());
+        userFound.setPassword(user.getPassword());
+        userFound.setEmail(user.getEmail());
 
         return persistOnMysql(userFound);
     }
@@ -85,10 +90,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User findByEmail(String email) throws BaseException {
-        User user = userRepository.findByEmailAndDeletedAtIsNull(email).orElseThrow(() -> new ObjectNotFoundException("User non trovato con questa email: " + email));
-        log.info("User trovato {}", user);
-        return user;
+    public Optional<User> findByEmail(String email) {
+        return userRepository.findByEmailAndDeletedAtIsNull(email);
     }
 
     private boolean existsUserByEmail(String email) {

@@ -1,4 +1,4 @@
-package it.project.timesheet.domain.dto;
+package it.project.timesheet.domain.dto.request;
 
 import lombok.*;
 
@@ -9,7 +9,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @Builder
 @EqualsAndHashCode(callSuper = false)
-public class UserDto {
+public class UserRequestDto {
     private UUID uuid;
     private String email;
     private String password;
