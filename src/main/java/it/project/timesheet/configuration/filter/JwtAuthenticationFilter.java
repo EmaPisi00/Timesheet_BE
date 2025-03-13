@@ -1,5 +1,6 @@
-package it.project.timesheet.configuration;
+package it.project.timesheet.configuration.filter;
 
+import it.project.timesheet.configuration.JwtTokenConfiguration;
 import it.project.timesheet.service.auth.UserDetailService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

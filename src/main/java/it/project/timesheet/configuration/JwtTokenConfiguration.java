@@ -8,7 +8,11 @@ import it.project.timesheet.utils.DateUtils;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
+import java.security.Key;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -17,8 +21,23 @@ import java.util.function.Function;
 @Component
 public class JwtTokenConfiguration {
 
-    private SecretKey getSignInKey() {
-        byte[] keyBytes = Decoders.BASE64.decode("7GYfNhEpVJC0oD3LpBe/Za2TSxK6KJD9A9RE3lx4+Fs=");
+    private final SecretKey signInKey; // Chiave memorizzata una sola volta
+
+    public JwtTokenConfiguration() {
+        this.signInKey = generateSignInKey();
+    }
+
+    private SecretKey generateSignInKey() {
+        String secretkey;
+        try {
+            KeyGenerator keyGen = KeyGenerator.getInstance("HmacSHA256");
+            SecretKey sk = keyGen.generateKey();
+            secretkey = Base64.getEncoder().encodeToString(sk.getEncoded());
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+
+        byte[] keyBytes = Decoders.BASE64.decode(secretkey);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
@@ -33,19 +52,6 @@ public class JwtTokenConfiguration {
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
-    }
-
-    private Claims extractAllClaims(String token) {
-        return Jwts.parser()
-                .verifyWith(getSignInKey())  // Metodo per verificare la firma
-                .build()
-                .parseSignedClaims(token)    // Parsing dei claims firmati
-                .getPayload();
-        // Usa getPayload() invece di getBody()
-    }
-
-    private Boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
     }
 
     public String generateToken(UserDetails userDetails) {
@@ -76,5 +82,21 @@ public class JwtTokenConfiguration {
 
     public Boolean validateToken(String token) {
         return !isTokenExpired(token);
+    }
+
+    private SecretKey getSignInKey() {
+        return this.signInKey; // Usa sempre la stessa chiave
+    }
+
+    private Claims extractAllClaims(String token) {
+        return Jwts.parser()
+                .verifyWith(getSignInKey())  // Metodo per verificare la firma
+                .build()
+                .parseSignedClaims(token)    // Parsing dei claims firmati
+                .getPayload();
+    }
+
+    private Boolean isTokenExpired(String token) {
+        return extractExpiration(token).before(new Date());
     }
 }

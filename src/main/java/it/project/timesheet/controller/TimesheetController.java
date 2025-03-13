@@ -20,11 +20,6 @@ public class TimesheetController implements TimesheetApi {
     private final TimesheetFacade timesheetFacade;
 
     @Override
-    public Timesheet save(Timesheet timesheet) throws BaseException {
-        return timesheetService.save(timesheet);
-    }
-
-    @Override
     public List<Timesheet> findAll() {
         return timesheetService.findAll();
     }

@@ -1,9 +1,11 @@
 package it.project.timesheet.configuration;
 
+import it.project.timesheet.configuration.filter.JwtAuthenticationFilter;
 import it.project.timesheet.service.auth.UserDetailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -26,20 +28,41 @@ public class SecurityConfiguration {
 
     private final UserDetailService userDetailService;
 
-    // IN QUESTO MODO RENDO LO SWAGGER PUBBLICO E ACCESSIBILE DA TUTTI
+    // IN QUESTO MODO RENDO LO SWAGGER PUBBLICO E ACCESSIBILE DA TUTTI E PROTEGGO LE API
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthFilter) throws Exception {
         return http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> {
-                    auth.requestMatchers("/swagger-ui/**", "/v3/api-docs*/**").permitAll();
-                    auth.requestMatchers("/api/v1/user/findAll", "/api/v1/user/login").permitAll();
-                    auth.requestMatchers("/api/v1/user/register").hasRole("ADMIN");
 
-                    // 👉 Tutte le altre API necessitano autenticazione
-                    auth.requestMatchers("/api/v1/user/**").authenticated();  // Tutte le richieste sotto /user sono protette
-                    auth.anyRequest().permitAll();
+                    auth.requestMatchers("/swagger-ui/**", "/v3/api-docs*/**").permitAll();
+
+                    // API USER
+                    // Api di Login (Tutti)
+                    auth.requestMatchers(HttpMethod.POST, "/api/v1/user/login").permitAll();
+
+                    // Api di findAll (solo ADMIN)
+                    auth.requestMatchers(HttpMethod.GET, "/api/v1/user").hasRole("ADMIN");
+
+                    // Api di Delete (solo ADMIN)
+                    auth.requestMatchers(HttpMethod.DELETE, "/api/v1/user/**").hasRole("ADMIN");
+
+                    // Api di Register (solo ADMIN)
+                    auth.requestMatchers(HttpMethod.POST, "/api/v1/user/register").hasRole("ADMIN");
+
+                    // API EMPLOYEE
+                    // Api di Save (solo ADMIN)
+                    auth.requestMatchers(HttpMethod.POST, "/api/v1/employee/**").hasRole("ADMIN");
+
+                    // Api di findAll (solo ADMIN)
+                    auth.requestMatchers(HttpMethod.GET, "/api/v1/employee").hasRole("ADMIN");
+
+                    // Api di Delete (solo ADMIN)
+                    auth.requestMatchers(HttpMethod.DELETE, "/api/v1/employee/**").hasRole("ADMIN");
+
+                    // Qualsiasi altra richiesta deve essere autenticata
+                    auth.anyRequest().authenticated();
                 })
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class) // 🔥 Aggiunge il filtro JWT
                 .build();

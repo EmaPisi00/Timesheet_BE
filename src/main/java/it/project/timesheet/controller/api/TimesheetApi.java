@@ -6,6 +6,7 @@ import it.project.timesheet.domain.dto.request.TimesheetRequestDto;
 import it.project.timesheet.domain.entity.Presence;
 import it.project.timesheet.domain.entity.Timesheet;
 import it.project.timesheet.exception.common.BaseException;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,10 +15,8 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/timesheet")
 @Tag(name = "Timesheet")
+@PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_USER')")
 public interface TimesheetApi {
-
-    @PostMapping
-    Timesheet save(@RequestBody Timesheet timesheet) throws BaseException;
 
     @GetMapping
     List<Timesheet> findAll();
