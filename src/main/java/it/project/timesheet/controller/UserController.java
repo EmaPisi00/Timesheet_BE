@@ -3,6 +3,7 @@ package it.project.timesheet.controller;
 import it.project.timesheet.controller.api.UserApi;
 import it.project.timesheet.domain.dto.request.UserRequestDto;
 import it.project.timesheet.domain.dto.response.AuthResponseDto;
+import it.project.timesheet.domain.dto.response.UserResponseDto;
 import it.project.timesheet.domain.entity.User;
 import it.project.timesheet.exception.common.BaseException;
 import it.project.timesheet.service.auth.AuthService;
@@ -47,5 +48,10 @@ public class UserController implements UserApi {
     @Override
     public boolean verify(String token) {
         return authService.validateToken(token);
+    }
+
+    @Override
+    public UserResponseDto getUserProfile(String token) throws BaseException {
+        return authService.getUserProfile(token);
     }
 }

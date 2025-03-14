@@ -1,10 +1,16 @@
 package it.project.timesheet.service.auth;
 
+import io.jsonwebtoken.Claims;
 import it.project.timesheet.configuration.JwtTokenConfiguration;
 import it.project.timesheet.domain.dto.request.UserRequestDto;
 import it.project.timesheet.domain.dto.response.AuthResponseDto;
+import it.project.timesheet.domain.dto.response.UserResponseDto;
+import it.project.timesheet.domain.entity.Employee;
 import it.project.timesheet.domain.entity.User;
+import it.project.timesheet.domain.enums.RoleEnum;
 import it.project.timesheet.exception.common.BaseException;
+import it.project.timesheet.exception.custom.ObjectNotFoundException;
+import it.project.timesheet.service.base.EmployeeService;
 import it.project.timesheet.service.base.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +36,7 @@ public class AuthService {
     private final JwtTokenConfiguration jwtTokenConfiguration;
     private final PasswordEncoder passwordEncoder;
     private final UserService userService;
+    private final EmployeeService employeeService;
 
     public AuthResponseDto login(UserRequestDto userRequestDto) {
         try {
@@ -58,7 +65,37 @@ public class AuthService {
     }
 
     public boolean validateToken(String token) {
-        return jwtTokenConfiguration.validateToken(token);
+        return jwtTokenConfiguration.validateToken(getTokenFromHeader(token));
+    }
+
+    public UserResponseDto getUserProfile(String token) throws BaseException {
+        UserResponseDto userResponseDto = new UserResponseDto();
+
+        // Verifico se il token è valido
+        boolean validToken = validateToken(token);
+
+        // Se il token è valido restituisco recupero le informazioni
+        if (validToken) {
+            String email = jwtTokenConfiguration.extractUsername(getTokenFromHeader(token));
+
+            User user = userService.findByEmail(email).orElseThrow(() -> new ObjectNotFoundException("Utente non trovato con questa email: "
+                    + email));
+            userResponseDto.setEmail(user.getEmail());
+            userResponseDto.setUuidUser(user.getUuid());
+            userResponseDto.setRole(RoleEnum.fromString(user.getRole()));
+            //userResponseDto.setPassword(user.getPassword());
+
+            Employee employee = employeeService.findByUser(user.getUuid());
+            userResponseDto.setName(employee.getName());
+            userResponseDto.setSurname(employee.getSurname());
+            userResponseDto.setUuidEmployee(employee.getUuid());
+        }
+
+        return userResponseDto;
+    }
+
+    private String getTokenFromHeader(String authHeader) {
+        return authHeader.substring(7);
     }
 
 }
