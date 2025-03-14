@@ -8,6 +8,7 @@ import it.project.timesheet.domain.dto.response.UserResponseDto;
 import it.project.timesheet.domain.entity.Employee;
 import it.project.timesheet.domain.entity.User;
 import it.project.timesheet.domain.enums.RoleEnum;
+import it.project.timesheet.exception.UnauthorizedException;
 import it.project.timesheet.exception.common.BaseException;
 import it.project.timesheet.exception.custom.ObjectNotFoundException;
 import it.project.timesheet.service.base.EmployeeService;
@@ -35,6 +36,7 @@ public class AuthService {
     private final AuthenticationProvider authenticationProvider;
     private final JwtTokenConfiguration jwtTokenConfiguration;
     private final PasswordEncoder passwordEncoder;
+    private final UserDetailService userDetailService;
     private final UserService userService;
     private final EmployeeService employeeService;
 
@@ -92,6 +94,23 @@ public class AuthService {
         }
 
         return userResponseDto;
+    }
+
+
+    public AuthResponseDto refreshToken(String token) throws BaseException {
+        AuthResponseDto authResponseDto = new AuthResponseDto();
+        try {
+            String cleanToken = getTokenFromHeader(token);
+            String username = jwtTokenConfiguration.extractUsername(cleanToken);
+
+            UserDetails userDetails = userDetailService.loadUserByUsername(username);
+            String newToken = jwtTokenConfiguration.refreshToken(cleanToken, userDetails);
+
+            authResponseDto.setToken(newToken);
+            return authResponseDto;
+        } catch (Exception e) {
+            throw new UnauthorizedException("Token non valido o non rinnovabile");
+        }
     }
 
     private String getTokenFromHeader(String authHeader) {

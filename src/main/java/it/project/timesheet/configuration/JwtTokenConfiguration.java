@@ -10,12 +10,10 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 
 @Component
@@ -24,21 +22,12 @@ public class JwtTokenConfiguration {
     private final SecretKey signInKey; // Chiave memorizzata una sola volta
 
     public JwtTokenConfiguration() {
-        this.signInKey = generateSignInKey();
+        this.signInKey = loadSignKey();
     }
 
-    private SecretKey generateSignInKey() {
-        String secretkey;
-        try {
-            KeyGenerator keyGen = KeyGenerator.getInstance("HmacSHA256");
-            SecretKey sk = keyGen.generateKey();
-            secretkey = Base64.getEncoder().encodeToString(sk.getEncoded());
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
-
-        byte[] keyBytes = Decoders.BASE64.decode(secretkey);
-        return Keys.hmacShaKeyFor(keyBytes);
+    private SecretKey loadSignKey() {
+        byte[] keyBytes = java.util.Base64.getDecoder().decode("f38fc19387ffa32ef32893a751c72f4603e28679fca4f38d46ffeba598e8060c");
+        return new SecretKeySpec(keyBytes, "HmacSHA256");
     }
 
     public String extractUsername(String token) {
@@ -75,7 +64,7 @@ public class JwtTokenConfiguration {
                 .claims(claims)
                 .subject(subject)
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 10))
+                .expiration(new Date(System.currentTimeMillis() + 1000 * 60))
                 .signWith(getSignInKey())
                 .compact();
     }
@@ -83,6 +72,32 @@ public class JwtTokenConfiguration {
     public Boolean validateToken(String token) {
         return !isTokenExpired(token);
     }
+
+    public String refreshToken(String token, UserDetails userDetails) {
+        try {
+            // Estrarre i claims dal token esistente
+            Claims claims = extractAllClaims(token);
+
+            // Verifica che il token sia ancora valido (non scaduto)
+            if (isTokenExpired(token)) {
+                throw new RuntimeException("Token scaduto, impossibile rinnovarlo");
+            }
+
+            // Rigenerare il token con le nuove date
+            return Jwts.builder()
+                    .claims(claims)
+                    .subject(userDetails.getUsername())
+                    .issuedAt(new Date(System.currentTimeMillis()))
+                    .expiration(new Date(System.currentTimeMillis() + 1000 * 60))
+                    .signWith(getSignInKey())
+                    .compact();
+
+        } catch (Exception e) {
+            throw new RuntimeException("Errore durante il refresh del token: " + e.getMessage());
+        }
+    }
+
+
 
     private SecretKey getSignInKey() {
         return this.signInKey; // Usa sempre la stessa chiave

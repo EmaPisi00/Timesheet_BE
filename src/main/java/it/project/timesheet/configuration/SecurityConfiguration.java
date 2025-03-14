@@ -46,20 +46,20 @@ public class SecurityConfiguration {
                     auth.requestMatchers(HttpMethod.GET, "/api/v1/user").hasRole("ADMIN");
 
                     // Api di Delete (solo ADMIN)
-                    auth.requestMatchers(HttpMethod.DELETE, "/api/v1/user/**").hasRole("ADMIN");
+                    auth.requestMatchers(HttpMethod.DELETE, "/api/v1/user").hasRole("ADMIN");
 
                     // Api di Register (solo ADMIN)
                     auth.requestMatchers(HttpMethod.POST, "/api/v1/user/register").hasRole("ADMIN");
 
                     // API EMPLOYEE
                     // Api di Save (solo ADMIN)
-                    auth.requestMatchers(HttpMethod.POST, "/api/v1/employee/**").hasRole("ADMIN");
+                    auth.requestMatchers(HttpMethod.POST, "/api/v1/employee").hasRole("ADMIN");
 
                     // Api di findAll (solo ADMIN)
                     auth.requestMatchers(HttpMethod.GET, "/api/v1/employee").hasRole("ADMIN");
 
                     // Api di Delete (solo ADMIN)
-                    auth.requestMatchers(HttpMethod.DELETE, "/api/v1/employee/**").hasRole("ADMIN");
+                    auth.requestMatchers(HttpMethod.DELETE, "/api/v1/employee").hasRole("ADMIN");
 
                     // Qualsiasi altra richiesta deve essere autenticata
                     auth.anyRequest().authenticated();

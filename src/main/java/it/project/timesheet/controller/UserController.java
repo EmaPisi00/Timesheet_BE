@@ -54,4 +54,9 @@ public class UserController implements UserApi {
     public UserResponseDto getUserProfile(String token) throws BaseException {
         return authService.getUserProfile(token);
     }
+
+    @Override
+    public AuthResponseDto refreshToken(String token) throws BaseException {
+        return authService.refreshToken(token);
+    }
 }

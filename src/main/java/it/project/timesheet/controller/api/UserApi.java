@@ -47,4 +47,8 @@ public interface UserApi {
     @GetMapping("/get-profile")
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_USER')")
     UserResponseDto getUserProfile(@RequestHeader("Authorization") String token) throws BaseException;
+
+    @PostMapping("/refresh-token")
+    AuthResponseDto refreshToken(@RequestHeader("Authorization") String token) throws BaseException;
+
 }
