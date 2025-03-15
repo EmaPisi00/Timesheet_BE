@@ -4,6 +4,5 @@ public enum StatusDayEnum {
     WORKDAY,
     HOLIDAY,
     ILLNESS,
-    PERMISSION,
     SMART_WORKING;
 }

@@ -86,7 +86,7 @@ public class TimesheetServiceImpl implements TimesheetService {
     @Override
     public Timesheet findByMonthAndYearAndEmployee(Integer month, Integer year, UUID uuidEmployee) throws BaseException {
         Employee employee = employeeService.findByUuid(uuidEmployee);
-        Timesheet timesheet = timesheetRepository.findByMonthAndYearAndEmployeeAndDeletedAtIsNull(month, year, employee).
+        Timesheet timesheet = timesheetRepository.findByMonthAndYearAndEmployeeAndLockedIsFalseAndDeletedAtIsNull(month, year, employee).
                 orElseThrow(() -> new ObjectNotFoundException("Timesheet non trovato con questo mese: " +
                         DateUtils.getMonthName(month) + " e questo anno : " + year +
                         " per questo uuidEmployee : " + uuidEmployee));
@@ -95,9 +95,15 @@ public class TimesheetServiceImpl implements TimesheetService {
     }
 
     @Override
-    public boolean existsTimesheetForMonthAndYearAndEmployee(Integer month, Integer year, UUID uuidEmployee) throws BaseException {
+    public boolean existsTimesheetForMonthAndYearAndEmployeeAndLockedIsFalse(Integer month, Integer year, UUID uuidEmployee) throws BaseException {
         Employee employee = employeeService.findByUuid(uuidEmployee);
-        return timesheetRepository.findByMonthAndYearAndEmployeeAndDeletedAtIsNull(month, year, employee).isPresent(); // Restituisce true se trovato, false se non trovato
+        return timesheetRepository.findByMonthAndYearAndEmployeeAndLockedIsFalseAndDeletedAtIsNull(month, year, employee).isPresent(); // Restituisce true se trovato, false se non trovato
+    }
+
+    @Override
+    public boolean existsTimesheetForMonthAndYearAndEmployeeAndLockedIsTrue(Integer month, Integer year, UUID uuidEmployee) throws BaseException {
+        Employee employee = employeeService.findByUuid(uuidEmployee);
+        return timesheetRepository.findByMonthAndYearAndEmployeeAndLockedIsTrueAndDeletedAtIsNull(month, year, employee).isPresent(); // Restituisce true se trovato, false se non trovato
     }
 
     private Timesheet persistOnMysql(Timesheet timesheet) {

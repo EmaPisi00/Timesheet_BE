@@ -50,5 +50,4 @@ public class Presence extends MysqlBaseEntity {
     @Column(name = "total_hours")
     private Double totalHours;
 
-
 }

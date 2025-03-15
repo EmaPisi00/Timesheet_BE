@@ -30,6 +30,9 @@ public class Timesheet extends MysqlBaseEntity {
     @Column(name = "year")
     private Integer year;
 
+    @Column(name = "locked")
+    private Boolean locked;
+
     @OneToMany(mappedBy = "timesheet", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference
     List<Presence> presenceList;

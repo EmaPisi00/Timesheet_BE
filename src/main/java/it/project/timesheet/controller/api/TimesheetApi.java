@@ -30,13 +30,12 @@ public interface TimesheetApi {
     @DeleteMapping("/{uuid}")
     void delete(@PathVariable("uuid") UUID uuid) throws BaseException;
 
-    @GetMapping("/findByMonthAndYear")
-    Timesheet findByMonthAndYear(@RequestParam("month") Integer month, @RequestParam("year") Integer year, @RequestParam("uuid_employee") UUID uuidEmployee) throws BaseException;
+    @GetMapping("/findByMonthAndYearAndEmployee/month/{month}/year/{year}/uuidEmployee/{uuid_employee}")
+    Timesheet findByMonthAndYearAndEmployee(@PathVariable("month") Integer month, @PathVariable("year") Integer year, @PathVariable("uuid_employee") UUID uuidEmployee) throws BaseException;
 
-    @GetMapping("/generateTimesheet")
-    TimesheetRequestDto generateTimesheet(@RequestParam("month") Integer month, @RequestParam("year") Integer year, @RequestParam("uuid_employee") UUID uuidEmployee) throws BaseException;
+    @GetMapping("/generateTimesheet/month/{month}/year/{year}/uuidEmployee/{uuid_employee}")
+    TimesheetRequestDto generateTimesheet(@PathVariable("month") Integer month, @PathVariable("year") Integer year, @PathVariable("uuid_employee") UUID uuidEmployee) throws BaseException;
 
     @PostMapping("/saveTimesheet")
     List<Presence> saveTimesheet(@RequestBody TimesheetRequestDto timesheetRequestDto) throws BaseException;
-
 }

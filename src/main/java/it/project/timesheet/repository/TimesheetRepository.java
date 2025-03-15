@@ -16,5 +16,8 @@ public interface TimesheetRepository extends JpaRepository<Timesheet, UUID> {
 
     List<Timesheet> findAllByDeletedAtIsNull();
 
-    Optional<Timesheet> findByMonthAndYearAndEmployeeAndDeletedAtIsNull(Integer month, Integer year, Employee employee);
+    Optional<Timesheet> findByMonthAndYearAndEmployeeAndLockedIsFalseAndDeletedAtIsNull(Integer month, Integer year, Employee employee);
+
+    Optional<Timesheet> findByMonthAndYearAndEmployeeAndLockedIsTrueAndDeletedAtIsNull(Integer month, Integer year, Employee employee);
+
 }

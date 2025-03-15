@@ -4,6 +4,7 @@ import it.project.timesheet.domain.dto.PresenceDto;
 import it.project.timesheet.domain.dto.request.TimesheetRequestDto;
 import it.project.timesheet.domain.dto.TimesheetDto;
 import it.project.timesheet.domain.entity.Employee;
+import it.project.timesheet.domain.entity.Presence;
 import it.project.timesheet.domain.entity.Timesheet;
 import it.project.timesheet.domain.enums.StatusDayEnum;
 import it.project.timesheet.domain.enums.StatusHoursEnum;
@@ -26,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -41,60 +43,60 @@ public class TimesheetFacadeImpl implements TimesheetFacade {
     public TimesheetRequestDto generateTimesheet(Integer month, Integer year, UUID uuidEmployee) throws BaseException {
         Set<LocalDate> holidays = DateUtils.getHolidays(year);
         TimesheetRequestDto timesheetRequestDto = new TimesheetRequestDto();
+        Employee employee = employeeService.findByUuid(uuidEmployee);
 
         // Ricerca per mese e anno per vedere se esiste già un timesheet con quel mese ed anno
-        if (timesheetService.existsTimesheetForMonthAndYearAndEmployee(month, year, uuidEmployee)) {
-            throw new ObjectFoundException("Oggetto già presente a DB!");
-        }
+        if (timesheetService.existsTimesheetForMonthAndYearAndEmployeeAndLockedIsTrue(month, year, uuidEmployee)) {
+            throw new ObjectFoundException("Timesheet già esistente e blocato già");
+        } else if (timesheetService.existsTimesheetForMonthAndYearAndEmployeeAndLockedIsFalse(month, year, uuidEmployee)) {
+            Timesheet timesheet = timesheetService.findByMonthAndYearAndEmployee(month, year, uuidEmployee);
 
-        // Creazione di un nuovo oggetto timesheet sulla base del mese, anno e uuidEmployee dati in input
-        Employee employee = employeeService.findByUuid(uuidEmployee);
-        TimesheetDto timesheetDto = TimesheetDto.builder()
-                .year(year)
-                .month(month)
-                .user(employee.getUser())
-                .name(employee.getName())
-                .surname(employee.getSurname())
-                .build();
+            // Setto il timesheet di output
+            timesheetRequestDto.setTimesheetDto(createTimesheetDto(month, year, employee));
 
-        timesheetRequestDto.setTimesheetDto(timesheetDto);
+            // Setto le ore
+            timesheetRequestDto.setPresenceList(convertToPresenceDtoList(timesheet.getPresenceList()));
 
-        // Ciclo tutti i giorni del mese
-        YearMonth yearMonth = YearMonth.of(year, month);
-        int daysInMonth = yearMonth.lengthOfMonth();
+        } else {
+            timesheetRequestDto.setTimesheetDto(createTimesheetDto(month, year, employee));
 
-        List<PresenceDto> presenceList = new ArrayList<>();
-        for (int day = 1; day <= daysInMonth; day++) {
-            PresenceDto presenceDto = new PresenceDto();
+            // Ciclo tutti i giorni del mese
+            YearMonth yearMonth = YearMonth.of(year, month);
+            int daysInMonth = yearMonth.lengthOfMonth();
 
-            // Creo un oggetto LocalDate del giorno corrente
-            LocalDate date = LocalDate.of(year, month, day);
-            DayOfWeek dayOfWeek = date.getDayOfWeek();
+            List<PresenceDto> presenceList = new ArrayList<>();
+            for (int day = 1; day <= daysInMonth; day++) {
+                PresenceDto presenceDto = new PresenceDto();
 
-            // Calcolo e controllo se il giorno corrente è un giorno festivo o un weekend
-            boolean isWeekend = (dayOfWeek == DayOfWeek.SATURDAY || dayOfWeek == DayOfWeek.SUNDAY);
-            boolean isHoliday = holidays.contains(date);
+                // Creo un oggetto LocalDate del giorno corrente
+                LocalDate date = LocalDate.of(year, month, day);
+                DayOfWeek dayOfWeek = date.getDayOfWeek();
 
-            LocalTime holidayEntryTime = LocalTime.of(0, 0);
-            LocalTime holidayExitTime = LocalTime.of(0, 0);
+                // Calcolo e controllo se il giorno corrente è un giorno festivo o un weekend
+                boolean isWeekend = (dayOfWeek == DayOfWeek.SATURDAY || dayOfWeek == DayOfWeek.SUNDAY);
+                boolean isHoliday = holidays.contains(date);
 
-            if (isWeekend || isHoliday) {
-                presenceDto.setStatusDayEnum(StatusDayEnum.HOLIDAY);
-            } else {
-                presenceDto.setStatusDayEnum(StatusDayEnum.WORKDAY);
-                holidayEntryTime = LocalTime.of(9, 0);
-                holidayExitTime = LocalTime.of(18, 0);
+                LocalTime holidayEntryTime = LocalTime.of(0, 0);
+                LocalTime holidayExitTime = LocalTime.of(0, 0);
+
+                if (isWeekend || isHoliday) {
+                    presenceDto.setStatusDayEnum(StatusDayEnum.HOLIDAY);
+                } else {
+                    presenceDto.setStatusDayEnum(StatusDayEnum.WORKDAY);
+                    holidayEntryTime = LocalTime.of(9, 0);
+                    holidayExitTime = LocalTime.of(18, 0);
+                }
+
+                presenceDto.setStatusHoursEnum(StatusHoursEnum.NORMAL_WORKING);
+                presenceDto.setWorkDay(date);
+                presenceDto.setEntryTime(holidayEntryTime);
+                presenceDto.setExitTime(holidayExitTime);
+                presenceList.add(presenceDto);
             }
 
-            presenceDto.setStatusHoursEnum(StatusHoursEnum.NORMAL_WORKING);
-            presenceDto.setWorkDay(date);
-            presenceDto.setEntryTime(holidayEntryTime);
-            presenceDto.setExitTime(holidayExitTime);
-            presenceList.add(presenceDto);
+            timesheetRequestDto.setPresenceList(presenceList);
+
         }
-
-        timesheetRequestDto.setPresenceList(presenceList);
-
         return timesheetRequestDto;
     }
 
@@ -108,10 +110,10 @@ public class TimesheetFacadeImpl implements TimesheetFacade {
         Integer monthRequest = timesheetRequestDto.getTimesheetDto().getMonth();
         Set<LocalDate> holidays = DateUtils.getHolidays(yearRequest);
 
-        Employee employee = employeeService.findByUser(timesheetRequestDto.getTimesheetDto().getUser().getUuid());
+        Employee employee = employeeService.findByUser(timesheetRequestDto.getTimesheetDto().getUuidUser());
 
         // Ricerca per mese e anno per vedere se esiste già un timesheet con quel mese ed anno
-        if (timesheetService.existsTimesheetForMonthAndYearAndEmployee(monthRequest, yearRequest, employee.getUuid())) {
+        if (timesheetService.existsTimesheetForMonthAndYearAndEmployeeAndLockedIsFalse(monthRequest, yearRequest, employee.getUuid())) {
             throw new ObjectFoundException("Timesheet già esistente a DB con questo mese : " + DateUtils.getMonthName(monthRequest)
                     + "\nquesto anno : " + yearRequest + "\ne questo UUID Dipendente : "
                     + employee.getUuid().toString());
@@ -136,18 +138,42 @@ public class TimesheetFacadeImpl implements TimesheetFacade {
                 throw new BadRequestException("Errore sono settati a TRUE sia lo stato MALATTIA che SMART_WORKING");
             }
 
-            it.project.timesheet.domain.entity.Presence presence = createPresence(ithPresenceDto, day, isHoliday, isWeekend, timesheet);
+            Presence presence = createPresence(ithPresenceDto, day, isHoliday, isWeekend, timesheet);
             presenceList.add(presence);
         }
 
         return presenceService.saveAll(presenceList);
     }
 
-    private it.project.timesheet.domain.entity.Presence createPresence(PresenceDto dto, LocalDate day, boolean isHoliday, boolean isWeekend, Timesheet timesheet) {
-        it.project.timesheet.domain.entity.Presence presence = new it.project.timesheet.domain.entity.Presence();
+    private TimesheetDto createTimesheetDto(Integer year, Integer month, Employee employee) {
+        return TimesheetDto.builder()
+                .year(year)
+                .month(month)
+                .uuidUser(employee.getUser().getUuid())
+                .name(employee.getName())
+                .surname(employee.getSurname())
+                .build();
+    }
+
+    private List<PresenceDto> convertToPresenceDtoList(List<Presence> presenceSet) {
+        return presenceSet.stream().map(presence -> {
+            PresenceDto presenceDto = new PresenceDto();
+            presenceDto.setWorkDay(presence.getWorkDay());
+            presenceDto.setEntryTime(presence.getEntryTime());
+            presenceDto.setExitTime(presence.getExitTime());
+            presenceDto.setStatusDayEnum(StatusDayEnum.valueOf(presence.getStatusDayEnum()));
+            presenceDto.setStatusHoursEnum(StatusHoursEnum.valueOf(presence.getStatusHoursEnum()));
+            return presenceDto;
+        }).toList();
+    }
+
+
+    private Presence createPresence(PresenceDto dto, LocalDate day, boolean isHoliday, boolean isWeekend, Timesheet timesheet) {
+        Presence presence = new Presence();
         presence.setWorkDay(day);
         presence.setEntryTime(defaultTime(dto.getEntryTime()));
         presence.setExitTime(defaultTime(dto.getExitTime()));
+        presence.setDescription(dto.getDescription());
 
         // Determina lo status del giorno
         if (dto.isIllnessed()) {
@@ -155,6 +181,9 @@ public class TimesheetFacadeImpl implements TimesheetFacade {
             presence.setStatusDayEnum(StatusDayEnum.ILLNESS.toString());
         } else if (dto.isSmartWorking()) {
             presence.setStatusDayEnum(StatusDayEnum.SMART_WORKING.toString());
+        } else if (dto.isHoliday()) {
+            setZeroTime(presence);
+            presence.setStatusDayEnum(StatusDayEnum.HOLIDAY.toString());
         } else if (isHoliday || isWeekend) {
             setZeroTime(presence);
             presence.setStatusDayEnum(StatusDayEnum.HOLIDAY.toString());

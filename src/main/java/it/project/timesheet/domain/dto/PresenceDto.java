@@ -23,6 +23,8 @@ public class PresenceDto {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm:ss")
     private LocalTime exitTime;
 
+    private String description;
+
     private StatusDayEnum statusDayEnum;
 
     private StatusHoursEnum statusHoursEnum;
@@ -30,4 +32,6 @@ public class PresenceDto {
     private boolean isIllnessed;
 
     private boolean isSmartWorking;
+
+    private boolean isHoliday;
 }

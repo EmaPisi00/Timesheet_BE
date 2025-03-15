@@ -44,11 +44,11 @@ public interface UserApi {
     @PostMapping("/verify")
     boolean verify(@RequestHeader("Authorization") String token);
 
-    @GetMapping("/get-profile")
+    @GetMapping("/getProfile")
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_USER')")
     UserResponseDto getUserProfile(@RequestHeader("Authorization") String token) throws BaseException;
 
-    @PostMapping("/refresh-token")
+    @PostMapping("/refreshToken")
     AuthResponseDto refreshToken(@RequestHeader("Authorization") String token) throws BaseException;
 
 }

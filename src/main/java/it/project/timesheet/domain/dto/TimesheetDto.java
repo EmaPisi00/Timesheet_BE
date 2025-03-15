@@ -1,7 +1,10 @@
 package it.project.timesheet.domain.dto;
 
+import it.project.timesheet.domain.entity.Employee;
 import it.project.timesheet.domain.entity.User;
 import lombok.*;
+
+import java.util.UUID;
 
 @Data
 @AllArgsConstructor
@@ -10,7 +13,7 @@ import lombok.*;
 @EqualsAndHashCode(callSuper = false)
 public class TimesheetDto {
 
-    private User user;
+    private UUID uuidUser;
 
     private String name;
 

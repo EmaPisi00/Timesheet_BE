@@ -2,31 +2,29 @@ package it.project.timesheet.configuration;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.Keys;
 import it.project.timesheet.utils.DateUtils;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
-import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
-import java.security.Key;
-import java.security.NoSuchAlgorithmException;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Function;
 
 @Component
 public class JwtTokenConfiguration {
 
-    private final SecretKey signInKey; // Chiave memorizzata una sola volta
+    private final SecretKey signInKey;
+    private static final String KEY = "f38fc19387ffa32ef32893a751c72f4603e28679fca4f38d46ffeba598e8060c";
 
     public JwtTokenConfiguration() {
         this.signInKey = loadSignKey();
     }
 
     private SecretKey loadSignKey() {
-        byte[] keyBytes = java.util.Base64.getDecoder().decode("f38fc19387ffa32ef32893a751c72f4603e28679fca4f38d46ffeba598e8060c");
+        byte[] keyBytes = java.util.Base64.getDecoder().decode(KEY);
         return new SecretKeySpec(keyBytes, "HmacSHA256");
     }
 
@@ -64,7 +62,7 @@ public class JwtTokenConfiguration {
                 .claims(claims)
                 .subject(subject)
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + 1000 * 60))
+                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 10))
                 .signWith(getSignInKey())
                 .compact();
     }
@@ -88,7 +86,7 @@ public class JwtTokenConfiguration {
                     .claims(claims)
                     .subject(userDetails.getUsername())
                     .issuedAt(new Date(System.currentTimeMillis()))
-                    .expiration(new Date(System.currentTimeMillis() + 1000 * 60))
+                    .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 10))
                     .signWith(getSignInKey())
                     .compact();
 
@@ -96,8 +94,6 @@ public class JwtTokenConfiguration {
             throw new RuntimeException("Errore durante il refresh del token: " + e.getMessage());
         }
     }
-
-
 
     private SecretKey getSignInKey() {
         return this.signInKey; // Usa sempre la stessa chiave

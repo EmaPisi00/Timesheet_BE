@@ -26,6 +26,8 @@ public interface TimesheetService {
 
     Timesheet findByMonthAndYearAndEmployee(Integer month, Integer year, UUID uuidEmployee) throws BaseException;
 
-    boolean existsTimesheetForMonthAndYearAndEmployee(Integer month, Integer year, UUID uuidEmployee) throws BaseException;
+    boolean existsTimesheetForMonthAndYearAndEmployeeAndLockedIsFalse(Integer month, Integer year, UUID uuidEmployee) throws BaseException;
+
+    boolean existsTimesheetForMonthAndYearAndEmployeeAndLockedIsTrue(Integer month, Integer year, UUID uuidEmployee) throws BaseException;
 
 }
