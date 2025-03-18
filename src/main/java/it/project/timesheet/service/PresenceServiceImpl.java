@@ -73,13 +73,6 @@ public class PresenceServiceImpl implements PresenceService {
         Employee employee = employeeService.findByUuid(timesheet.getEmployee().getUuid());
         userService.findByUuid(employee.getUser().getUuid());
 
-        if (presence.getWorkDay() == null
-                || presence.getEntryTime() == null
-                || presence.getExitTime() == null
-                || StringUtils.isBlank(presence.getDescription())) {
-            throw new BadRequestException("Giorno lavorativo | orario entrata | orario uscita | descrizione non inseriti");
-        }
-
         presenceFound.setWorkDay(presence.getWorkDay());
         presenceFound.setEntryTime(presence.getEntryTime());
         presenceFound.setExitTime(presence.getExitTime());
@@ -110,6 +103,11 @@ public class PresenceServiceImpl implements PresenceService {
     @Override
     public List<Presence> saveAll(List<Presence> presences) {
         return presences.stream().map(this::persistOnMysql).toList();
+    }
+
+    @Override
+    public List<Presence> findByTimesheet(Timesheet timesheet) {
+        return presenceRepository.findAllByTimesheetAndDeletedAtIsNull(timesheet);
     }
 
     private Presence persistOnMysql(Presence presence) {

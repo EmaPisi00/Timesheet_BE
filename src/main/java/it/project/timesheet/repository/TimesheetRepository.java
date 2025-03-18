@@ -2,6 +2,7 @@ package it.project.timesheet.repository;
 
 import it.project.timesheet.domain.entity.Employee;
 import it.project.timesheet.domain.entity.Timesheet;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

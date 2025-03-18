@@ -23,10 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -48,17 +45,17 @@ public class TimesheetFacadeImpl implements TimesheetFacade {
         // Ricerca per mese e anno per vedere se esiste già un timesheet con quel mese ed anno
         if (timesheetService.existsTimesheetForMonthAndYearAndEmployeeAndLockedIsTrue(month, year, uuidEmployee)) {
             throw new ObjectFoundException("Timesheet già esistente e blocato già");
-        } else if (timesheetService.existsTimesheetForMonthAndYearAndEmployeeAndLockedIsFalse(month, year, uuidEmployee)) {
+        } else if (timesheetService.existsTimesheetForMonthAndYearAndEmployeeAndLockedIsFalse(month, year, employee)) {
             Timesheet timesheet = timesheetService.findByMonthAndYearAndEmployee(month, year, uuidEmployee);
 
             // Setto il timesheet di output
-            timesheetRequestDto.setTimesheetDto(createTimesheetDto(month, year, employee));
+            timesheetRequestDto.setTimesheetDto(createTimesheetDto(year, month, employee));
 
             // Setto le ore
             timesheetRequestDto.setPresenceList(convertToPresenceDtoList(timesheet.getPresenceList()));
 
         } else {
-            timesheetRequestDto.setTimesheetDto(createTimesheetDto(month, year, employee));
+            timesheetRequestDto.setTimesheetDto(createTimesheetDto(year, month, employee));
 
             // Ciclo tutti i giorni del mese
             YearMonth yearMonth = YearMonth.of(year, month);
@@ -94,30 +91,52 @@ public class TimesheetFacadeImpl implements TimesheetFacade {
                 presenceList.add(presenceDto);
             }
 
-            timesheetRequestDto.setPresenceList(presenceList);
+            List<PresenceDto> sortedList = presenceList.stream()
+                    .sorted(Comparator.comparing(PresenceDto::getWorkDay))
+                    .collect(Collectors.toList());
+            timesheetRequestDto.setPresenceList(sortedList);
+
 
         }
         return timesheetRequestDto;
     }
 
     @Override
-    public List<it.project.timesheet.domain.entity.Presence> saveTimesheet(TimesheetRequestDto timesheetRequestDto) throws BaseException {
+    public List<Presence> saveTimesheet(TimesheetRequestDto timesheetRequestDto) throws BaseException {
         if (timesheetRequestDto == null || timesheetRequestDto.getPresenceList() == null || timesheetRequestDto.getTimesheetDto() == null) {
             throw new BadRequestException("RequestTimesheetDto o la lista delle presenze è null");
         }
 
+        // Eseguo la ricerca per Employee
+        Employee employee = employeeService.findByUser(timesheetRequestDto.getTimesheetDto().getUuidUser());
+
+        List<Presence> presenceList = new ArrayList<>();
+
+        System.out.println(timesheetRequestDto.getTimesheetDto());
+
+        // Ricerca per mese e anno per vedere se esiste già un timesheet con quel mese ed anno
+        if (timesheetService.existsTimesheetForMonthAndYearAndEmployeeAndLockedIsFalse(
+                timesheetRequestDto.getTimesheetDto().getMonth(),
+                timesheetRequestDto.getTimesheetDto().getYear(),
+                employee)) {
+            // richiamo la funzione di update
+            presenceList = update(timesheetRequestDto, employee);
+        } else {
+            // richiamo la funzione di save
+            presenceList = presenceService.saveAll(save(timesheetRequestDto, employee));
+        }
+
+        return presenceList;
+    }
+
+    private List<Presence> save(TimesheetRequestDto timesheetRequestDto, Employee employee) throws BaseException {
+
+        List<Presence> presenceList = new ArrayList<>();
+
+        // Ricavo mese, anno e i giorni di vacanze
         Integer yearRequest = timesheetRequestDto.getTimesheetDto().getYear();
         Integer monthRequest = timesheetRequestDto.getTimesheetDto().getMonth();
         Set<LocalDate> holidays = DateUtils.getHolidays(yearRequest);
-
-        Employee employee = employeeService.findByUser(timesheetRequestDto.getTimesheetDto().getUuidUser());
-
-        // Ricerca per mese e anno per vedere se esiste già un timesheet con quel mese ed anno
-        if (timesheetService.existsTimesheetForMonthAndYearAndEmployeeAndLockedIsFalse(monthRequest, yearRequest, employee.getUuid())) {
-            throw new ObjectFoundException("Timesheet già esistente a DB con questo mese : " + DateUtils.getMonthName(monthRequest)
-                    + "\nquesto anno : " + yearRequest + "\ne questo UUID Dipendente : "
-                    + employee.getUuid().toString());
-        }
 
         validatePresenceDates(timesheetRequestDto.getPresenceList(), yearRequest, monthRequest);
 
@@ -128,7 +147,7 @@ public class TimesheetFacadeImpl implements TimesheetFacade {
                 .build();
         timesheetService.save(timesheet);
 
-        List<it.project.timesheet.domain.entity.Presence> presenceList = new ArrayList<>();
+
         for (PresenceDto ithPresenceDto : timesheetRequestDto.getPresenceList()) {
             LocalDate day = ithPresenceDto.getWorkDay();
             boolean isWeekend = (day.getDayOfWeek() == DayOfWeek.SATURDAY || day.getDayOfWeek() == DayOfWeek.SUNDAY);
@@ -142,8 +161,66 @@ public class TimesheetFacadeImpl implements TimesheetFacade {
             presenceList.add(presence);
         }
 
-        return presenceService.saveAll(presenceList);
+        return presenceList;
     }
+
+    private List<Presence> update(TimesheetRequestDto timesheetRequestDto, Employee employee) throws BaseException {
+        // Recupera il timesheet esistente dal database
+        Timesheet existingTimesheet = timesheetService.findByMonthAndYearAndEmployee(
+                timesheetRequestDto.getTimesheetDto().getMonth(),
+                timesheetRequestDto.getTimesheetDto().getYear(),
+                employee.getUuid()
+        );
+
+        List<Presence> updatedPresenceList = new ArrayList<>();
+
+        // Creiamo una mappa per accedere rapidamente alle presenze esistenti tramite la data di lavoro
+        Map<LocalDate, Presence> existingPresencesMap = new HashMap<>();
+        for (Presence presence : presenceService.findByTimesheet(existingTimesheet)) {
+            existingPresencesMap.put(presence.getWorkDay(), presence);
+        }
+
+        // Validiamo che le date delle nuove presenze siano coerenti con il mese e l'anno richiesti
+        validatePresenceDates(timesheetRequestDto.getPresenceList(),
+                timesheetRequestDto.getTimesheetDto().getYear(),
+                timesheetRequestDto.getTimesheetDto().getMonth());
+
+        for (PresenceDto ithPresenceDto : timesheetRequestDto.getPresenceList()) {
+            LocalDate workDay = ithPresenceDto.getWorkDay();
+            Presence presence;
+
+            if (existingPresencesMap.containsKey(workDay)) {
+                // Se la presenza esiste già, aggiorniamo i dati
+                presence = existingPresencesMap.get(workDay);
+                presence.setEntryTime(defaultTime(ithPresenceDto.getEntryTime()));
+                presence.setExitTime(defaultTime(ithPresenceDto.getExitTime()));
+                presence.setDescription(ithPresenceDto.getDescription());
+            } else {
+                // Se non esiste, creiamo una nuova presenza
+                boolean isWeekend = (workDay.getDayOfWeek() == DayOfWeek.SATURDAY || workDay.getDayOfWeek() == DayOfWeek.SUNDAY);
+                boolean isHoliday = DateUtils.getHolidays(timesheetRequestDto.getTimesheetDto().getYear()).contains(workDay);
+                presence = createPresence(ithPresenceDto, workDay, isHoliday, isWeekend, existingTimesheet);
+            }
+
+            // Ricalcoliamo le ore lavorate e aggiorniamo lo stato della giornata
+            double totalHours = calculateWorkedHours(presence.getEntryTime(), presence.getExitTime());
+            presence.setTotalHours(totalHours);
+
+            // Determiniamo lo stato delle ore lavorate in base al totale calcolato
+            if (totalHours > 8) {
+                presence.setStatusHoursEnum(StatusHoursEnum.EXTRAORDINARY.toString());
+            } else if (totalHours >= 4 && totalHours < 8) {
+                presence.setStatusHoursEnum(StatusHoursEnum.PERMISSION.toString());
+            } else if (totalHours == 8 || totalHours == 0) {
+                presence.setStatusHoursEnum(StatusHoursEnum.NORMAL_WORKING.toString());
+            }
+
+            updatedPresenceList.add(presenceService.updateByUuid(presence, presence.getUuid()));
+        }
+
+        return updatedPresenceList;
+    }
+
 
     private TimesheetDto createTimesheetDto(Integer year, Integer month, Employee employee) {
         return TimesheetDto.builder()
@@ -159,6 +236,7 @@ public class TimesheetFacadeImpl implements TimesheetFacade {
         return presenceSet.stream().map(presence -> {
             PresenceDto presenceDto = new PresenceDto();
             presenceDto.setWorkDay(presence.getWorkDay());
+            presenceDto.setDescription(presence.getDescription());
             presenceDto.setEntryTime(presence.getEntryTime());
             presenceDto.setExitTime(presence.getExitTime());
             presenceDto.setStatusDayEnum(StatusDayEnum.valueOf(presence.getStatusDayEnum()));
@@ -166,7 +244,6 @@ public class TimesheetFacadeImpl implements TimesheetFacade {
             return presenceDto;
         }).toList();
     }
-
 
     private Presence createPresence(PresenceDto dto, LocalDate day, boolean isHoliday, boolean isWeekend, Timesheet timesheet) {
         Presence presence = new Presence();

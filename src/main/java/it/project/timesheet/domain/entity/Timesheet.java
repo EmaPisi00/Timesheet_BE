@@ -35,5 +35,6 @@ public class Timesheet extends MysqlBaseEntity {
 
     @OneToMany(mappedBy = "timesheet", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference
+    @OrderBy("workDay asc")
     List<Presence> presenceList;
 }

@@ -13,6 +13,7 @@ import it.project.timesheet.utils.DateUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -95,8 +96,7 @@ public class TimesheetServiceImpl implements TimesheetService {
     }
 
     @Override
-    public boolean existsTimesheetForMonthAndYearAndEmployeeAndLockedIsFalse(Integer month, Integer year, UUID uuidEmployee) throws BaseException {
-        Employee employee = employeeService.findByUuid(uuidEmployee);
+    public boolean existsTimesheetForMonthAndYearAndEmployeeAndLockedIsFalse(Integer month, Integer year, Employee employee) {
         return timesheetRepository.findByMonthAndYearAndEmployeeAndLockedIsFalseAndDeletedAtIsNull(month, year, employee).isPresent(); // Restituisce true se trovato, false se non trovato
     }
 

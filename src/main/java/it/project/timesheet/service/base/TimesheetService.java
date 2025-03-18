@@ -1,5 +1,6 @@
 package it.project.timesheet.service.base;
 
+import it.project.timesheet.domain.entity.Employee;
 import it.project.timesheet.domain.entity.Timesheet;
 import it.project.timesheet.exception.common.BaseException;
 import org.springframework.stereotype.Service;
@@ -26,7 +27,7 @@ public interface TimesheetService {
 
     Timesheet findByMonthAndYearAndEmployee(Integer month, Integer year, UUID uuidEmployee) throws BaseException;
 
-    boolean existsTimesheetForMonthAndYearAndEmployeeAndLockedIsFalse(Integer month, Integer year, UUID uuidEmployee) throws BaseException;
+    boolean existsTimesheetForMonthAndYearAndEmployeeAndLockedIsFalse(Integer month, Integer year, Employee Employee) throws BaseException;
 
     boolean existsTimesheetForMonthAndYearAndEmployeeAndLockedIsTrue(Integer month, Integer year, UUID uuidEmployee) throws BaseException;
 

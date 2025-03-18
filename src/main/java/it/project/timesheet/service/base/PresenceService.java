@@ -1,6 +1,7 @@
 package it.project.timesheet.service.base;
 
 import it.project.timesheet.domain.entity.Presence;
+import it.project.timesheet.domain.entity.Timesheet;
 import it.project.timesheet.exception.common.BaseException;
 import org.springframework.stereotype.Service;
 
@@ -20,5 +21,9 @@ public interface PresenceService {
 
     List<Presence> findAll();
 
-    List<Presence> saveAll(List<Presence> presences) ;
+    List<Presence> saveAll(List<Presence> presences);
+
+    // Other
+    List<Presence> findByTimesheet(Timesheet timesheet);
 }
+
