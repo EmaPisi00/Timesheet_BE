@@ -3,6 +3,8 @@ package it.project.timesheet.service.base;
 import it.project.timesheet.domain.entity.Employee;
 import it.project.timesheet.domain.entity.Timesheet;
 import it.project.timesheet.exception.common.BaseException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -31,4 +33,5 @@ public interface TimesheetService {
 
     boolean existsTimesheetForMonthAndYearAndEmployeeAndLockedIsTrue(Integer month, Integer year, UUID uuidEmployee) throws BaseException;
 
+    Page<Timesheet> findAllTimesheetsByEmployee(Pageable pageable, UUID uuidEmployee) throws BaseException;
 }

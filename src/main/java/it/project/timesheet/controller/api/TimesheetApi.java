@@ -6,6 +6,8 @@ import it.project.timesheet.domain.dto.request.TimesheetRequestDto;
 import it.project.timesheet.domain.entity.Presence;
 import it.project.timesheet.domain.entity.Timesheet;
 import it.project.timesheet.exception.common.BaseException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,6 +32,8 @@ public interface TimesheetApi {
     @DeleteMapping("/{uuid}")
     void delete(@PathVariable("uuid") UUID uuid) throws BaseException;
 
+    // Other Api
+
     @GetMapping("/findByMonthAndYearAndEmployee/month/{month}/year/{year}/uuidEmployee/{uuid_employee}")
     Timesheet findByMonthAndYearAndEmployee(@PathVariable("month") Integer month, @PathVariable("year") Integer year, @PathVariable("uuid_employee") UUID uuidEmployee) throws BaseException;
 
@@ -37,5 +41,8 @@ public interface TimesheetApi {
     TimesheetRequestDto generateTimesheet(@PathVariable("month") Integer month, @PathVariable("year") Integer year, @PathVariable("uuid_employee") UUID uuidEmployee) throws BaseException;
 
     @PostMapping("/saveTimesheet")
-    List<Presence> saveTimesheet(@RequestBody TimesheetRequestDto timesheetRequestDto) throws BaseException;
+    Timesheet saveTimesheet(@RequestBody TimesheetRequestDto timesheetRequestDto) throws BaseException;
+
+    @GetMapping("/findAllByEmployee/{uuid_employee}")
+    Page<Timesheet> findAllByEmployee(@PathVariable("uuid_employee") UUID uuidEmployee, Pageable pageable) throws BaseException;
 }

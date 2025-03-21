@@ -8,6 +8,8 @@ import it.project.timesheet.exception.common.BaseException;
 import it.project.timesheet.service.base.TimesheetService;
 import it.project.timesheet.service.facade.base.TimesheetFacade;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -50,8 +52,13 @@ public class TimesheetController implements TimesheetApi {
     }
 
     @Override
-    public List<Presence> saveTimesheet(TimesheetRequestDto timesheetRequestDto) throws BaseException {
+    public Timesheet saveTimesheet(TimesheetRequestDto timesheetRequestDto) throws BaseException {
         return timesheetFacade.saveTimesheet(timesheetRequestDto);
+    }
+
+    @Override
+    public Page<Timesheet> findAllByEmployee(UUID uuidEmployee, Pageable pageable) throws BaseException {
+        return timesheetService.findAllTimesheetsByEmployee(pageable, uuidEmployee);
     }
 
 }

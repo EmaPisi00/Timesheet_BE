@@ -19,6 +19,8 @@ import it.project.timesheet.service.facade.base.TimesheetFacade;
 import it.project.timesheet.utils.DateUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,8 +55,9 @@ public class TimesheetFacadeImpl implements TimesheetFacade {
 
             // Setto le ore
             timesheetRequestDto.setPresenceList(convertToPresenceDtoList(timesheet.getPresenceList()));
-
         } else {
+
+            // Setto il timesheet di output
             timesheetRequestDto.setTimesheetDto(createTimesheetDto(year, month, employee));
 
             // Ciclo tutti i giorni del mese
@@ -102,7 +105,7 @@ public class TimesheetFacadeImpl implements TimesheetFacade {
     }
 
     @Override
-    public List<Presence> saveTimesheet(TimesheetRequestDto timesheetRequestDto) throws BaseException {
+    public Timesheet saveTimesheet(TimesheetRequestDto timesheetRequestDto) throws BaseException {
         if (timesheetRequestDto == null || timesheetRequestDto.getPresenceList() == null || timesheetRequestDto.getTimesheetDto() == null) {
             throw new BadRequestException("RequestTimesheetDto o la lista delle presenze è null");
         }
@@ -110,7 +113,7 @@ public class TimesheetFacadeImpl implements TimesheetFacade {
         // Eseguo la ricerca per Employee
         Employee employee = employeeService.findByUser(timesheetRequestDto.getTimesheetDto().getUuidUser());
 
-        List<Presence> presenceList = new ArrayList<>();
+        Timesheet timesheet;
 
         System.out.println(timesheetRequestDto.getTimesheetDto());
 
@@ -120,17 +123,16 @@ public class TimesheetFacadeImpl implements TimesheetFacade {
                 timesheetRequestDto.getTimesheetDto().getYear(),
                 employee)) {
             // richiamo la funzione di update
-            presenceList = update(timesheetRequestDto, employee);
+            timesheet = update(timesheetRequestDto, employee);
         } else {
             // richiamo la funzione di save
-            presenceList = presenceService.saveAll(save(timesheetRequestDto, employee));
+            timesheet = save(timesheetRequestDto, employee);
         }
 
-        return presenceList;
+        return timesheet;
     }
 
-    private List<Presence> save(TimesheetRequestDto timesheetRequestDto, Employee employee) throws BaseException {
-
+    private Timesheet save(TimesheetRequestDto timesheetRequestDto, Employee employee) throws BaseException {
         List<Presence> presenceList = new ArrayList<>();
 
         // Ricavo mese, anno e i giorni di vacanze
@@ -145,8 +147,7 @@ public class TimesheetFacadeImpl implements TimesheetFacade {
                 .month(monthRequest)
                 .employee(employee)
                 .build();
-        timesheetService.save(timesheet);
-
+        timesheet = timesheetService.save(timesheet);
 
         for (PresenceDto ithPresenceDto : timesheetRequestDto.getPresenceList()) {
             LocalDate day = ithPresenceDto.getWorkDay();
@@ -161,18 +162,18 @@ public class TimesheetFacadeImpl implements TimesheetFacade {
             presenceList.add(presence);
         }
 
-        return presenceList;
+        presenceService.saveAll(presenceList);
+
+        return timesheet;
     }
 
-    private List<Presence> update(TimesheetRequestDto timesheetRequestDto, Employee employee) throws BaseException {
+    private Timesheet update(TimesheetRequestDto timesheetRequestDto, Employee employee) throws BaseException {
         // Recupera il timesheet esistente dal database
         Timesheet existingTimesheet = timesheetService.findByMonthAndYearAndEmployee(
                 timesheetRequestDto.getTimesheetDto().getMonth(),
                 timesheetRequestDto.getTimesheetDto().getYear(),
                 employee.getUuid()
         );
-
-        List<Presence> updatedPresenceList = new ArrayList<>();
 
         // Creiamo una mappa per accedere rapidamente alle presenze esistenti tramite la data di lavoro
         Map<LocalDate, Presence> existingPresencesMap = new HashMap<>();
@@ -215,10 +216,10 @@ public class TimesheetFacadeImpl implements TimesheetFacade {
                 presence.setStatusHoursEnum(StatusHoursEnum.NORMAL_WORKING.toString());
             }
 
-            updatedPresenceList.add(presenceService.updateByUuid(presence, presence.getUuid()));
+            presenceService.updateByUuid(presence, presence.getUuid());
         }
 
-        return updatedPresenceList;
+        return existingTimesheet;
     }
 
 

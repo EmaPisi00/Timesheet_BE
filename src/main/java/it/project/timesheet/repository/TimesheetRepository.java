@@ -2,6 +2,8 @@ package it.project.timesheet.repository;
 
 import it.project.timesheet.domain.entity.Employee;
 import it.project.timesheet.domain.entity.Timesheet;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -21,4 +23,5 @@ public interface TimesheetRepository extends JpaRepository<Timesheet, UUID> {
 
     Optional<Timesheet> findByMonthAndYearAndEmployeeAndLockedIsTrueAndDeletedAtIsNull(Integer month, Integer year, Employee employee);
 
+    Page<Timesheet> findAllByEmployeeAndDeletedAtIsNull(Pageable pageable, Employee employee);
 }

@@ -6,6 +6,7 @@ import it.project.timesheet.domain.entity.Timesheet;
 import it.project.timesheet.exception.BadRequestException;
 import it.project.timesheet.exception.common.BaseException;
 import it.project.timesheet.exception.custom.ObjectNotFoundException;
+import it.project.timesheet.repository.EmployeeRepository;
 import it.project.timesheet.repository.TimesheetRepository;
 import it.project.timesheet.service.base.EmployeeService;
 import it.project.timesheet.service.base.TimesheetService;
@@ -13,6 +14,8 @@ import it.project.timesheet.utils.DateUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +30,7 @@ public class TimesheetServiceImpl implements TimesheetService {
 
     private final TimesheetRepository timesheetRepository;
     private final EmployeeService employeeService;
+    private final EmployeeRepository employeeRepository;
 
     @Override
     public Timesheet save(Timesheet timesheet) throws BaseException {
@@ -104,6 +108,12 @@ public class TimesheetServiceImpl implements TimesheetService {
     public boolean existsTimesheetForMonthAndYearAndEmployeeAndLockedIsTrue(Integer month, Integer year, UUID uuidEmployee) throws BaseException {
         Employee employee = employeeService.findByUuid(uuidEmployee);
         return timesheetRepository.findByMonthAndYearAndEmployeeAndLockedIsTrueAndDeletedAtIsNull(month, year, employee).isPresent(); // Restituisce true se trovato, false se non trovato
+    }
+
+    @Override
+    public Page<Timesheet> findAllTimesheetsByEmployee(Pageable pageable, UUID uuidEmployee) throws BaseException {
+        Employee employee = employeeService.findByUuid(uuidEmployee);
+        return timesheetRepository.findAllByEmployeeAndDeletedAtIsNull(pageable, employee);
     }
 
     private Timesheet persistOnMysql(Timesheet timesheet) {
