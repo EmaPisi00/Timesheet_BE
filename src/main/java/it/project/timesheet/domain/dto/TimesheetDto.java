@@ -22,4 +22,6 @@ public class TimesheetDto {
     private Integer month;
 
     private Integer year;
+
+    private Boolean locked;
 }

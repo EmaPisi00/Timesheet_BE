@@ -1,6 +1,7 @@
 package it.project.timesheet.configuration.filter;
 
 import it.project.timesheet.configuration.JwtTokenConfiguration;
+import it.project.timesheet.service.auth.TokenBlacklistService;
 import it.project.timesheet.service.auth.UserDetailService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -21,6 +22,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenConfiguration jwtTokenConfiguration;
     private final UserDetailService userDetailsService;
+    private final TokenBlacklistService tokenBlacklistService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -35,6 +37,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         String token = authHeader.substring(7);
+
+        // 🔥 Controllo se il token è stato revocato
+        if (tokenBlacklistService.isBlacklisted(token)) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token revocato");
+            return;
+        }
+
         String username = jwtTokenConfiguration.extractUsername(token);
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {

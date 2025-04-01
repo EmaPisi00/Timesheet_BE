@@ -34,4 +34,6 @@ public interface TimesheetService {
     boolean existsTimesheetForMonthAndYearAndEmployeeAndLockedIsTrue(Integer month, Integer year, UUID uuidEmployee) throws BaseException;
 
     Page<Timesheet> findAllTimesheetsByEmployee(Pageable pageable, UUID uuidEmployee) throws BaseException;
+
+    Timesheet blockTimesheet(UUID uuid) throws BaseException;
 }

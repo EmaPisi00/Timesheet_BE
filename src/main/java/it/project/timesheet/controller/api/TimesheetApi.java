@@ -45,4 +45,7 @@ public interface TimesheetApi {
 
     @GetMapping("/findAllByEmployee/{uuid_employee}")
     Page<Timesheet> findAllByEmployee(@PathVariable("uuid_employee") UUID uuidEmployee, Pageable pageable) throws BaseException;
+
+    @PatchMapping("/block/{uuid}")
+    Timesheet blockTimesheet(@PathVariable("uuid") UUID uuid) throws BaseException;
 }

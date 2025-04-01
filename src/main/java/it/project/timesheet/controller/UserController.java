@@ -59,4 +59,9 @@ public class UserController implements UserApi {
     public AuthResponseDto refreshToken(String token) throws BaseException {
         return authService.refreshToken(token);
     }
+
+    @Override
+    public void logout(String token) {
+        authService.logout(token);
+    }
 }

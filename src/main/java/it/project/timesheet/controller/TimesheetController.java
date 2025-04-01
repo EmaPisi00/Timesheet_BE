@@ -61,4 +61,9 @@ public class TimesheetController implements TimesheetApi {
         return timesheetService.findAllTimesheetsByEmployee(pageable, uuidEmployee);
     }
 
+    @Override
+    public Timesheet blockTimesheet(UUID uuid) throws BaseException {
+        return timesheetService.blockTimesheet(uuid);
+    }
+
 }

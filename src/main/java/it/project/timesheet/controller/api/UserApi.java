@@ -49,6 +49,11 @@ public interface UserApi {
     UserResponseDto getUserProfile(@RequestHeader("Authorization") String token) throws BaseException;
 
     @PostMapping("/refreshToken")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_USER')")
     AuthResponseDto refreshToken(@RequestHeader("Authorization") String token) throws BaseException;
+
+    @PostMapping("/logout")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_USER')")
+    void logout(@RequestHeader("Authorization") String token);
 
 }

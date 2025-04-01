@@ -1,6 +1,5 @@
 package it.project.timesheet.service.auth;
 
-import io.jsonwebtoken.Claims;
 import it.project.timesheet.configuration.JwtTokenConfiguration;
 import it.project.timesheet.domain.dto.request.UserRequestDto;
 import it.project.timesheet.domain.dto.response.AuthResponseDto;
@@ -39,6 +38,7 @@ public class AuthService {
     private final UserDetailService userDetailService;
     private final UserService userService;
     private final EmployeeService employeeService;
+    private final TokenBlacklistService tokenBlacklistService;
 
     public AuthResponseDto login(UserRequestDto userRequestDto) {
         try {
@@ -111,6 +111,11 @@ public class AuthService {
         } catch (Exception e) {
             throw new UnauthorizedException("Token non valido o non rinnovabile");
         }
+    }
+
+    public void logout(String token) {
+        String jwt = token.replace("Bearer ", "");
+        tokenBlacklistService.blacklistToken(jwt);
     }
 
     private String getTokenFromHeader(String authHeader) {

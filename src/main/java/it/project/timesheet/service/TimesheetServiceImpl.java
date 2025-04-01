@@ -4,6 +4,7 @@ import io.micrometer.common.util.StringUtils;
 import it.project.timesheet.domain.entity.Employee;
 import it.project.timesheet.domain.entity.Timesheet;
 import it.project.timesheet.exception.BadRequestException;
+import it.project.timesheet.exception.InternalServerErrorException;
 import it.project.timesheet.exception.common.BaseException;
 import it.project.timesheet.exception.custom.ObjectNotFoundException;
 import it.project.timesheet.repository.EmployeeRepository;
@@ -30,7 +31,6 @@ public class TimesheetServiceImpl implements TimesheetService {
 
     private final TimesheetRepository timesheetRepository;
     private final EmployeeService employeeService;
-    private final EmployeeRepository employeeRepository;
 
     @Override
     public Timesheet save(Timesheet timesheet) throws BaseException {
@@ -45,6 +45,7 @@ public class TimesheetServiceImpl implements TimesheetService {
         }
 
         timesheet.setEmployee(employee);
+        timesheet.setLocked(false);
 
         return persistOnMysql(timesheet);
     }
@@ -76,11 +77,8 @@ public class TimesheetServiceImpl implements TimesheetService {
     @Override
     public void deleteByUuid(UUID uuid) throws BaseException {
         Timesheet timesheet = findByUuid(uuid);
-        timesheet.deleted();
-        log.info("Timesheet eliminato (logicamente) {}", timesheet);
-
-        // prevedere un metodo di Facade che quando elimino logicamente un utente questo deve
-        // cancellare logicamente a cascata in tutte le tabelle in cui viene richiamato.
+        timesheetRepository.deleteById(uuid);
+        log.info("Timesheet eliminato {}", timesheet);
     }
 
     @Override
@@ -114,6 +112,18 @@ public class TimesheetServiceImpl implements TimesheetService {
     public Page<Timesheet> findAllTimesheetsByEmployee(Pageable pageable, UUID uuidEmployee) throws BaseException {
         Employee employee = employeeService.findByUuid(uuidEmployee);
         return timesheetRepository.findAllByEmployeeAndDeletedAtIsNull(pageable, employee);
+    }
+
+    @Override
+    public Timesheet blockTimesheet(UUID uuid) throws BaseException {
+        Timesheet timesheet = findByUuid(uuid);
+
+        if(timesheet.getLocked().equals(true)) {
+            throw new InternalServerErrorException("Timesheet già lockato");
+        }
+
+        timesheet.setLocked(true);
+        return timesheet;
     }
 
     private Timesheet persistOnMysql(Timesheet timesheet) {

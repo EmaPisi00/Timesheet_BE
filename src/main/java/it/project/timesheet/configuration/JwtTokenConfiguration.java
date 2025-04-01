@@ -49,7 +49,7 @@ public class JwtTokenConfiguration {
 
         // Converto la data di emissione (iat) e scadenza (exp) in formato leggibile
         String formattedIssuedAt = DateUtils.convertDateToString(new Date(System.currentTimeMillis()));
-        String formattedExpiration = DateUtils.convertDateToString(new Date(System.currentTimeMillis() + 1000 * 60 * 10));
+        String formattedExpiration = DateUtils.convertDateToString(new Date(System.currentTimeMillis() + 1000 * 60 * 60));
 
         claims.put("issuedAt", formattedIssuedAt);
         claims.put("expiration", formattedExpiration);
@@ -62,7 +62,7 @@ public class JwtTokenConfiguration {
                 .claims(claims)
                 .subject(subject)
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 10))
+                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60))
                 .signWith(getSignInKey())
                 .compact();
     }
@@ -86,7 +86,7 @@ public class JwtTokenConfiguration {
                     .claims(claims)
                     .subject(userDetails.getUsername())
                     .issuedAt(new Date(System.currentTimeMillis()))
-                    .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 10))
+                    .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60))
                     .signWith(getSignInKey())
                     .compact();
 
