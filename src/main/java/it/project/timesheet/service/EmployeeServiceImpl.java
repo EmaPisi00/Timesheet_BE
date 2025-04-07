@@ -12,9 +12,10 @@ import it.project.timesheet.service.base.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -80,8 +81,8 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
-    public List<Employee> findAll() {
-        return employeeRepository.findAllByDeletedAtIsNull();
+    public Page<Employee> findAll(Pageable pageable) {
+        return employeeRepository.findAllByDeletedAtIsNull(pageable);
     }
 
     @Override

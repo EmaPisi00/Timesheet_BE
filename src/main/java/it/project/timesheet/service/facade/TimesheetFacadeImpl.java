@@ -1,8 +1,8 @@
 package it.project.timesheet.service.facade;
 
 import it.project.timesheet.domain.dto.PresenceDto;
-import it.project.timesheet.domain.dto.request.TimesheetRequestDto;
 import it.project.timesheet.domain.dto.TimesheetDto;
+import it.project.timesheet.domain.dto.request.TimesheetRequestDto;
 import it.project.timesheet.domain.entity.Employee;
 import it.project.timesheet.domain.entity.Presence;
 import it.project.timesheet.domain.entity.Timesheet;
@@ -15,15 +15,17 @@ import it.project.timesheet.exception.custom.ObjectFoundException;
 import it.project.timesheet.service.base.EmployeeService;
 import it.project.timesheet.service.base.PresenceService;
 import it.project.timesheet.service.base.TimesheetService;
+import it.project.timesheet.service.excel.ExcelService;
 import it.project.timesheet.service.facade.base.TimesheetFacade;
 import it.project.timesheet.utils.DateUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.time.*;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -130,6 +132,40 @@ public class TimesheetFacadeImpl implements TimesheetFacade {
         }
 
         return timesheet;
+    }
+
+    public ByteArrayResource createExcelFileOutput(UUID uuid) throws BaseException, IOException {
+        Timesheet timesheet = timesheetService.findByUuid(uuid);
+
+        if (timesheet.getLocked().equals(Boolean.FALSE)) {
+            throw new BadRequestException("Timesheet non è locked");
+        }
+
+        // Estrae il valore entryTime
+        List<LocalTime> entryTimeList = timesheet.getPresenceList().stream()
+                .map(Presence::getEntryTime)
+                .toList();
+
+        // Estrae il valore exitTime
+        List<LocalTime> exitTimeList = timesheet.getPresenceList().stream()
+                .map(Presence::getExitTime)
+                .toList();
+
+        // Estrae il valore notes
+        List<String> noteList = timesheet.getPresenceList().stream()
+                .map(Presence::getDescription)
+                .toList();
+
+        // Faccio il totale delle ore lavorate
+        List<Double> totalHoursList = timesheet.getPresenceList().stream()
+                .map(Presence::getTotalHours)
+                .toList();
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        ExcelService.createExcelFile(outputStream, timesheet.getYear(), timesheet.getMonth(),
+                entryTimeList, exitTimeList, noteList, totalHoursList);
+
+        return new ByteArrayResource(outputStream.toByteArray());
     }
 
     private Timesheet save(TimesheetRequestDto timesheetRequestDto, Employee employee) throws BaseException {

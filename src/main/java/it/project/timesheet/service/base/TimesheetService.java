@@ -7,7 +7,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -23,7 +22,7 @@ public interface TimesheetService {
 
     void deleteByUuid(UUID uuid) throws BaseException;
 
-    List<Timesheet> findAll();
+    Page<Timesheet> findAll(Pageable pageable);
 
     // OTHER
 

@@ -2,17 +2,20 @@ package it.project.timesheet.controller;
 
 import it.project.timesheet.controller.api.TimesheetApi;
 import it.project.timesheet.domain.dto.request.TimesheetRequestDto;
-import it.project.timesheet.domain.entity.Presence;
 import it.project.timesheet.domain.entity.Timesheet;
 import it.project.timesheet.exception.common.BaseException;
 import it.project.timesheet.service.base.TimesheetService;
 import it.project.timesheet.service.facade.base.TimesheetFacade;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
+import java.io.IOException;
 import java.util.UUID;
 
 @Component
@@ -22,8 +25,8 @@ public class TimesheetController implements TimesheetApi {
     private final TimesheetFacade timesheetFacade;
 
     @Override
-    public List<Timesheet> findAll() {
-        return timesheetService.findAll();
+    public Page<Timesheet> findAll(Pageable pageable) {
+        return timesheetService.findAll(pageable);
     }
 
     @Override
@@ -66,4 +69,17 @@ public class TimesheetController implements TimesheetApi {
         return timesheetService.blockTimesheet(uuid);
     }
 
+    @Override
+    public ResponseEntity<ByteArrayResource> downloadExcel(UUID uuid) throws BaseException, IOException {
+        ByteArrayResource fileResource = timesheetFacade.createExcelFileOutput(uuid);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=OrarioLavorativo.xlsx");
+        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .contentLength(fileResource.contentLength())
+                .body(fileResource);
+    }
 }

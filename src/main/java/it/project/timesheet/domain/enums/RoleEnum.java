@@ -1,19 +1,18 @@
 package it.project.timesheet.domain.enums;
 
+import lombok.Getter;
+
+@Getter
 public enum RoleEnum {
     USER("USER"),
     ADMIN("ADMIN");
 
+    // Metodo per ottenere il valore stringa dell'enum
     private final String roleName;
 
     // Costruttore privato
     RoleEnum(String roleName) {
         this.roleName = roleName;
-    }
-
-    // Metodo per ottenere il valore stringa dell'enum
-    public String getRoleName() {
-        return roleName;
     }
 
     // Metodo per convertire da stringa a enum

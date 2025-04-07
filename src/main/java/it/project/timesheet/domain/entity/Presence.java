@@ -3,8 +3,6 @@ package it.project.timesheet.domain.entity;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import it.project.timesheet.domain.entity.common.MysqlBaseEntity;
-import it.project.timesheet.domain.enums.StatusDayEnum;
-import it.project.timesheet.domain.enums.StatusHoursEnum;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;

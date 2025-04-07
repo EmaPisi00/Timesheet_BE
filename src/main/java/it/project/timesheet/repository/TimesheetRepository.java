@@ -4,11 +4,9 @@ import it.project.timesheet.domain.entity.Employee;
 import it.project.timesheet.domain.entity.Timesheet;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -17,7 +15,7 @@ public interface TimesheetRepository extends JpaRepository<Timesheet, UUID> {
 
     Optional<Timesheet> findByUuidAndDeletedAtIsNull(UUID uuid);
 
-    List<Timesheet> findAllByDeletedAtIsNull();
+    Page<Timesheet> findAllByDeletedAtIsNull(Pageable pageable);
 
     Optional<Timesheet> findByMonthAndYearAndEmployeeAndLockedIsFalseAndDeletedAtIsNull(Integer month, Integer year, Employee employee);
 

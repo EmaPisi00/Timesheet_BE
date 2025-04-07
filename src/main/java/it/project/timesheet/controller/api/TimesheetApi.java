@@ -3,15 +3,16 @@ package it.project.timesheet.controller.api;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import it.project.timesheet.domain.dto.request.TimesheetRequestDto;
-import it.project.timesheet.domain.entity.Presence;
 import it.project.timesheet.domain.entity.Timesheet;
 import it.project.timesheet.exception.common.BaseException;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.io.IOException;
 import java.util.UUID;
 
 @RestController
@@ -21,7 +22,7 @@ import java.util.UUID;
 public interface TimesheetApi {
 
     @GetMapping
-    List<Timesheet> findAll();
+    Page<Timesheet> findAll(Pageable pageable);
 
     @GetMapping("/{uuid}")
     Timesheet findById(@PathVariable("uuid") UUID uuid) throws BaseException;
@@ -48,4 +49,7 @@ public interface TimesheetApi {
 
     @PatchMapping("/block/{uuid}")
     Timesheet blockTimesheet(@PathVariable("uuid") UUID uuid) throws BaseException;
+
+    @GetMapping("/downloadExcel/{uuid}")
+    ResponseEntity<ByteArrayResource> downloadExcel(@PathVariable("uuid") UUID uuid) throws BaseException, IOException;
 }

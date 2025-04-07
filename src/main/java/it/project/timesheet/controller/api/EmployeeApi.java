@@ -4,10 +4,11 @@ package it.project.timesheet.controller.api;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import it.project.timesheet.domain.entity.Employee;
 import it.project.timesheet.exception.common.BaseException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -21,7 +22,7 @@ public interface EmployeeApi {
 
     @GetMapping
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    List<Employee> findAll();
+    Page<Employee> findAll(Pageable pageable);
 
     @GetMapping("/{uuid}")
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_USER')")

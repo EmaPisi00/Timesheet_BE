@@ -2,6 +2,7 @@ package it.project.timesheet.configuration;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import it.project.timesheet.utils.Constant;
 import it.project.timesheet.utils.DateUtils;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -24,7 +25,7 @@ public class JwtTokenConfiguration {
     }
 
     private SecretKey loadSignKey() {
-        byte[] keyBytes = java.util.Base64.getDecoder().decode(KEY);
+        byte[] keyBytes = java.util.Base64.getDecoder().decode(Constant.SECRET_KEY);
         return new SecretKeySpec(keyBytes, "HmacSHA256");
     }
 

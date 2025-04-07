@@ -1,11 +1,11 @@
 package it.project.timesheet.service.base;
 
 import it.project.timesheet.domain.entity.Employee;
-import it.project.timesheet.domain.entity.User;
 import it.project.timesheet.exception.common.BaseException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -19,7 +19,7 @@ public interface EmployeeService {
 
     void deleteByUuid(UUID uuid) throws BaseException;
 
-    List<Employee> findAll();
+    Page<Employee> findAll(Pageable pageable);
 
     Employee findByUser(UUID uuidUser) throws BaseException;
 }

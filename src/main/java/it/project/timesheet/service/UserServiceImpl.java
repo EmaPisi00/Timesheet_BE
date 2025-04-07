@@ -1,9 +1,6 @@
 package it.project.timesheet.service;
 
 import io.micrometer.common.util.StringUtils;
-import it.project.timesheet.configuration.JwtTokenConfiguration;
-import it.project.timesheet.domain.dto.request.UserRequestDto;
-import it.project.timesheet.domain.dto.response.AuthResponseDto;
 import it.project.timesheet.domain.entity.User;
 import it.project.timesheet.domain.enums.RoleEnum;
 import it.project.timesheet.exception.BadRequestException;
@@ -15,13 +12,6 @@ import it.project.timesheet.service.base.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

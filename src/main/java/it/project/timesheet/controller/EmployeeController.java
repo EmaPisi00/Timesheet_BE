@@ -5,9 +5,10 @@ import it.project.timesheet.domain.entity.Employee;
 import it.project.timesheet.exception.common.BaseException;
 import it.project.timesheet.service.base.EmployeeService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -21,8 +22,8 @@ public class EmployeeController implements EmployeeApi {
     }
 
     @Override
-    public List<Employee> findAll() {
-        return employeeService.findAll();
+    public Page<Employee> findAll(Pageable pageable) {
+        return employeeService.findAll(pageable);
     }
 
     @Override

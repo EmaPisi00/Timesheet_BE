@@ -7,7 +7,6 @@ import it.project.timesheet.exception.BadRequestException;
 import it.project.timesheet.exception.InternalServerErrorException;
 import it.project.timesheet.exception.common.BaseException;
 import it.project.timesheet.exception.custom.ObjectNotFoundException;
-import it.project.timesheet.repository.EmployeeRepository;
 import it.project.timesheet.repository.TimesheetRepository;
 import it.project.timesheet.service.base.EmployeeService;
 import it.project.timesheet.service.base.TimesheetService;
@@ -17,10 +16,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -82,8 +79,8 @@ public class TimesheetServiceImpl implements TimesheetService {
     }
 
     @Override
-    public List<Timesheet> findAll() {
-        return timesheetRepository.findAllByDeletedAtIsNull();
+    public Page<Timesheet> findAll(Pageable pageable) {
+        return timesheetRepository.findAllByDeletedAtIsNull(pageable);
     }
 
     @Override
