@@ -2,9 +2,11 @@ package it.project.timesheet.controller.api;
 
 
 import io.swagger.v3.oas.annotations.tags.Tag;
+import it.project.timesheet.domain.dto.request.EmployeeRequestDto;
 import it.project.timesheet.domain.dto.request.UserRequestDto;
 import it.project.timesheet.domain.dto.response.AuthResponseDto;
 import it.project.timesheet.domain.dto.response.UserResponseDto;
+import it.project.timesheet.domain.entity.Employee;
 import it.project.timesheet.domain.entity.User;
 import it.project.timesheet.exception.common.BaseException;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -28,7 +30,7 @@ public interface UserApi {
 
     @DeleteMapping("/{uuid}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    void delete(@PathVariable("uuid") UUID uuid) throws BaseException;
+    void delete(@PathVariable("uuid") UUID uuid);
 
     /**
      * AUTH API
@@ -36,7 +38,7 @@ public interface UserApi {
 
     @PostMapping("/register")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    User register(@RequestBody UserRequestDto userRequestDto) throws BaseException;
+    Employee register(@RequestBody EmployeeRequestDto employeeRequestDto) throws BaseException;
 
     @PostMapping("/login")
     AuthResponseDto login(@RequestBody UserRequestDto userRequestDto) throws BaseException;

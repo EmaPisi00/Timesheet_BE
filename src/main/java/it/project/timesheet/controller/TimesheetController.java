@@ -1,6 +1,7 @@
 package it.project.timesheet.controller;
 
 import it.project.timesheet.controller.api.TimesheetApi;
+import it.project.timesheet.domain.dto.TimesheetDto;
 import it.project.timesheet.domain.dto.request.TimesheetRequestDto;
 import it.project.timesheet.domain.entity.Timesheet;
 import it.project.timesheet.exception.common.BaseException;
@@ -25,7 +26,7 @@ public class TimesheetController implements TimesheetApi {
     private final TimesheetFacade timesheetFacade;
 
     @Override
-    public Page<Timesheet> findAll(Pageable pageable) {
+    public Page<TimesheetDto> findAll(Pageable pageable) {
         return timesheetService.findAll(pageable);
     }
 

@@ -1,5 +1,6 @@
 package it.project.timesheet.service.base;
 
+import it.project.timesheet.domain.dto.TimesheetDto;
 import it.project.timesheet.domain.entity.Employee;
 import it.project.timesheet.domain.entity.Timesheet;
 import it.project.timesheet.exception.common.BaseException;
@@ -22,7 +23,7 @@ public interface TimesheetService {
 
     void deleteByUuid(UUID uuid) throws BaseException;
 
-    Page<Timesheet> findAll(Pageable pageable);
+    Page<TimesheetDto> findAll(Pageable pageable);
 
     // OTHER
 

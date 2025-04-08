@@ -13,6 +13,8 @@ public class TimesheetDto {
 
     private UUID uuidUser;
 
+    private UUID uuidTimesheet;
+
     private String name;
 
     private String surname;

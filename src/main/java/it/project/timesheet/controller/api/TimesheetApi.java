@@ -2,6 +2,7 @@ package it.project.timesheet.controller.api;
 
 
 import io.swagger.v3.oas.annotations.tags.Tag;
+import it.project.timesheet.domain.dto.TimesheetDto;
 import it.project.timesheet.domain.dto.request.TimesheetRequestDto;
 import it.project.timesheet.domain.entity.Timesheet;
 import it.project.timesheet.exception.common.BaseException;
@@ -22,7 +23,7 @@ import java.util.UUID;
 public interface TimesheetApi {
 
     @GetMapping
-    Page<Timesheet> findAll(Pageable pageable);
+    Page<TimesheetDto> findAll(Pageable pageable);
 
     @GetMapping("/{uuid}")
     Timesheet findById(@PathVariable("uuid") UUID uuid) throws BaseException;

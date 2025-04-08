@@ -1,13 +1,16 @@
 package it.project.timesheet.service;
 
 import io.micrometer.common.util.StringUtils;
+import it.project.timesheet.domain.dto.TimesheetDto;
 import it.project.timesheet.domain.entity.Employee;
 import it.project.timesheet.domain.entity.Timesheet;
 import it.project.timesheet.exception.BadRequestException;
 import it.project.timesheet.exception.InternalServerErrorException;
 import it.project.timesheet.exception.common.BaseException;
 import it.project.timesheet.exception.custom.ObjectNotFoundException;
+import it.project.timesheet.mapper.TimesheetMapper;
 import it.project.timesheet.repository.TimesheetRepository;
+import it.project.timesheet.service.auth.AuthService;
 import it.project.timesheet.service.base.EmployeeService;
 import it.project.timesheet.service.base.TimesheetService;
 import it.project.timesheet.utils.DateUtils;
@@ -15,6 +18,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +32,7 @@ public class TimesheetServiceImpl implements TimesheetService {
 
     private final TimesheetRepository timesheetRepository;
     private final EmployeeService employeeService;
+    private final AuthService authService;
 
     @Override
     public Timesheet save(Timesheet timesheet) throws BaseException {
@@ -79,8 +84,12 @@ public class TimesheetServiceImpl implements TimesheetService {
     }
 
     @Override
-    public Page<Timesheet> findAll(Pageable pageable) {
-        return timesheetRepository.findAllByDeletedAtIsNull(pageable);
+    public Page<TimesheetDto> findAll(Pageable pageable) {
+        Page<Timesheet> timesheets = timesheetRepository.findAll(pageable);
+
+        return timesheets.map(timesheet ->
+                TimesheetMapper.INSTANCE.convertTimesheetToTimesheetDto(timesheet, timesheet.getEmployee())
+        );
     }
 
     @Override

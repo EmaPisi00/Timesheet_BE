@@ -96,7 +96,7 @@ public class TimesheetServiceTest {
         timesheetDto.setMonth(3);
         timesheetDto.setName(employee.getName());
         timesheetDto.setSurname(employee.getSurname());
-        timesheetDto.setUser(user);
+        //timesheetDto.setUser(user);
 
         // Crea una presenza fittizia
         PresenceDto presenceDto = new PresenceDto();

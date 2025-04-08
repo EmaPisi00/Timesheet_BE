@@ -17,7 +17,7 @@ public interface UserService {
 
     User updateByUuid(User user, UUID uuid) throws BaseException;
 
-    void deleteByUuid(UUID uuid) throws BaseException;
+    void deleteByUuid(UUID uuid) ;
 
     List<User> findAll();
 

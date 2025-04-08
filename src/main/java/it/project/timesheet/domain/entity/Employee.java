@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import it.project.timesheet.domain.entity.common.MysqlBaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.util.List;
 
@@ -12,6 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 @Data
 @ToString(exclude = {"user"}) // Esclude relazioni
+@SuperBuilder
 @Entity
 @Table(name = "employee")
 public class Employee extends MysqlBaseEntity {

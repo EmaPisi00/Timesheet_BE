@@ -53,14 +53,14 @@ public class TimesheetFacadeImpl implements TimesheetFacade {
             Timesheet timesheet = timesheetService.findByMonthAndYearAndEmployee(month, year, uuidEmployee);
 
             // Setto il timesheet di output
-            timesheetRequestDto.setTimesheetDto(createTimesheetDto(year, month, employee, timesheet.getLocked()));
+            timesheetRequestDto.setTimesheetDto(createTimesheetDto(year, month, employee, timesheet.getLocked(), timesheet.getUuid()));
 
             // Setto le ore
             timesheetRequestDto.setPresenceList(convertToPresenceDtoList(timesheet.getPresenceList()));
         } else {
 
             // Setto il timesheet di output
-            timesheetRequestDto.setTimesheetDto(createTimesheetDto(year, month, employee, Boolean.FALSE));
+            timesheetRequestDto.setTimesheetDto(createTimesheetDto(year, month, employee, Boolean.FALSE, null));
 
             // Ciclo tutti i giorni del mese
             YearMonth yearMonth = YearMonth.of(year, month);
@@ -259,8 +259,9 @@ public class TimesheetFacadeImpl implements TimesheetFacade {
     }
 
 
-    private TimesheetDto createTimesheetDto(Integer year, Integer month, Employee employee, Boolean isLocked) {
+    private TimesheetDto createTimesheetDto(Integer year, Integer month, Employee employee, Boolean isLocked, UUID uuidTimesheet) {
         return TimesheetDto.builder()
+                .uuidTimesheet(uuidTimesheet)
                 .year(year)
                 .month(month)
                 .uuidUser(employee.getUser().getUuid())

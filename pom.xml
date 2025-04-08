@@ -75,6 +75,14 @@
             <artifactId>commons-compress</artifactId>
             <version>1.21</version>
         </dependency>
+
+        <!-- MapStruct per conversione da entity a dto -->
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+            <version>1.5.2.Final</version>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -89,6 +97,11 @@
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
                             <version>1.18.24</version> <!-- Usa la versione definita sopra -->
+                        </path>
+                        <path>
+                            <groupId>org.mapstruct</groupId>
+                            <artifactId>mapstruct-processor</artifactId>
+                            <version>1.5.2.Final</version>
                         </path>
                     </annotationProcessorPaths>
                 </configuration>

@@ -1,12 +1,15 @@
 package it.project.timesheet.service.auth;
 
+import io.micrometer.common.util.StringUtils;
 import it.project.timesheet.configuration.JwtTokenConfiguration;
+import it.project.timesheet.domain.dto.request.EmployeeRequestDto;
 import it.project.timesheet.domain.dto.request.UserRequestDto;
 import it.project.timesheet.domain.dto.response.AuthResponseDto;
 import it.project.timesheet.domain.dto.response.UserResponseDto;
 import it.project.timesheet.domain.entity.Employee;
 import it.project.timesheet.domain.entity.User;
 import it.project.timesheet.domain.enums.RoleEnum;
+import it.project.timesheet.exception.BadRequestException;
 import it.project.timesheet.exception.UnauthorizedException;
 import it.project.timesheet.exception.common.BaseException;
 import it.project.timesheet.exception.custom.ObjectNotFoundException;
@@ -59,11 +62,23 @@ public class AuthService {
         }
     }
 
-    public User register(UserRequestDto userRequestDto) throws BaseException {
-        User user = new User();
-        user.setEmail(userRequestDto.getEmail());
-        user.setPassword(passwordEncoder.encode(userRequestDto.getPassword()));
-        return userService.save(user);
+    public Employee register(EmployeeRequestDto employeeRequestDto) throws BaseException {
+
+        if (StringUtils.isBlank(employeeRequestDto.getEmail()) || StringUtils.isBlank(employeeRequestDto.getPassword())
+                || StringUtils.isBlank(employeeRequestDto.getName()) || StringUtils.isBlank(employeeRequestDto.getSurname())) {
+            throw new BadRequestException("Email|Password|Name|Surname non valide");
+        }
+
+        User user = userService.save(User.builder()
+                .email(employeeRequestDto.getEmail())
+                .password(passwordEncoder.encode(employeeRequestDto.getPassword()))
+                .build());
+
+        return employeeService.save(Employee.builder()
+                .user(user)
+                .name(employeeRequestDto.getName())
+                .surname(employeeRequestDto.getSurname())
+                .build());
     }
 
     public boolean validateToken(String token) {

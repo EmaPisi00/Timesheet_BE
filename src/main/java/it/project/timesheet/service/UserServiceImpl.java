@@ -67,13 +67,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void deleteByUuid(UUID uuid) throws BaseException {
-        User user = findByUuid(uuid);
-        user.deleted();
-        log.info("User eliminato (logicamente) {}", user);
-
-        // prevedere un metodo di Facade che quando elimino logicamente un utente questo deve
-        // cancellare logicamente a cascata in tutte le tabelle in cui viene richiamato.
+    public void deleteByUuid(UUID uuid)  {
+        userRepository.deleteById(uuid);
     }
 
     @Override

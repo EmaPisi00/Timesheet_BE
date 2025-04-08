@@ -1,9 +1,11 @@
 package it.project.timesheet.controller;
 
 import it.project.timesheet.controller.api.UserApi;
+import it.project.timesheet.domain.dto.request.EmployeeRequestDto;
 import it.project.timesheet.domain.dto.request.UserRequestDto;
 import it.project.timesheet.domain.dto.response.AuthResponseDto;
 import it.project.timesheet.domain.dto.response.UserResponseDto;
+import it.project.timesheet.domain.entity.Employee;
 import it.project.timesheet.domain.entity.User;
 import it.project.timesheet.exception.common.BaseException;
 import it.project.timesheet.service.auth.AuthService;
@@ -31,13 +33,13 @@ public class UserController implements UserApi {
     }
 
     @Override
-    public void delete(UUID uuid) throws BaseException {
+    public void delete(UUID uuid) {
         userService.deleteByUuid(uuid);
     }
 
     @Override
-    public User register(UserRequestDto userRequestDto) throws BaseException {
-        return authService.register(userRequestDto);
+    public Employee register(EmployeeRequestDto employeeRequestDto) throws BaseException {
+        return authService.register(employeeRequestDto);
     }
 
     @Override
