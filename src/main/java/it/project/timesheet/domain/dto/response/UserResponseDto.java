@@ -13,7 +13,6 @@ import java.util.UUID;
 public class UserResponseDto {
     private UUID uuidUser;
     private String email;
-    //private String password;
 
     private UUID uuidEmployee;
     private String name;

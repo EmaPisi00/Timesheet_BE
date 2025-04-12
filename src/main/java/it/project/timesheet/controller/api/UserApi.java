@@ -3,6 +3,7 @@ package it.project.timesheet.controller.api;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import it.project.timesheet.domain.dto.request.EmployeeRequestDto;
+import it.project.timesheet.domain.dto.request.ResetPasswordRequestDto;
 import it.project.timesheet.domain.dto.request.UserRequestDto;
 import it.project.timesheet.domain.dto.response.AuthResponseDto;
 import it.project.timesheet.domain.dto.response.UserResponseDto;
@@ -57,5 +58,9 @@ public interface UserApi {
     @PostMapping("/logout")
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_USER')")
     void logout(@RequestHeader("Authorization") String token);
+
+    @PostMapping("/resetPassword")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_USER')")
+    UserResponseDto resetPassword(@RequestHeader("Authorization") String token, @RequestBody ResetPasswordRequestDto resetPasswordRequestDto) throws BaseException;
 
 }

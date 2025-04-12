@@ -3,16 +3,18 @@ package it.project.timesheet.service.auth;
 import io.micrometer.common.util.StringUtils;
 import it.project.timesheet.configuration.JwtTokenConfiguration;
 import it.project.timesheet.domain.dto.request.EmployeeRequestDto;
+import it.project.timesheet.domain.dto.request.ResetPasswordRequestDto;
 import it.project.timesheet.domain.dto.request.UserRequestDto;
 import it.project.timesheet.domain.dto.response.AuthResponseDto;
 import it.project.timesheet.domain.dto.response.UserResponseDto;
 import it.project.timesheet.domain.entity.Employee;
 import it.project.timesheet.domain.entity.User;
-import it.project.timesheet.domain.enums.RoleEnum;
 import it.project.timesheet.exception.BadRequestException;
 import it.project.timesheet.exception.UnauthorizedException;
 import it.project.timesheet.exception.common.BaseException;
+import it.project.timesheet.exception.custom.InconsistencyDatetimeException;
 import it.project.timesheet.exception.custom.ObjectNotFoundException;
+import it.project.timesheet.mapper.UserMapper;
 import it.project.timesheet.service.base.EmployeeService;
 import it.project.timesheet.service.base.UserService;
 import jakarta.transaction.Transactional;
@@ -28,6 +30,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -97,15 +101,8 @@ public class AuthService {
 
             User user = userService.findByEmail(email).orElseThrow(() -> new ObjectNotFoundException("Utente non trovato con questa email: "
                     + email));
-            userResponseDto.setEmail(user.getEmail());
-            userResponseDto.setUuidUser(user.getUuid());
-            userResponseDto.setRole(RoleEnum.fromString(user.getRole()));
-            //userResponseDto.setPassword(user.getPassword());
-
             Employee employee = employeeService.findByUser(user.getUuid());
-            userResponseDto.setName(employee.getName());
-            userResponseDto.setSurname(employee.getSurname());
-            userResponseDto.setUuidEmployee(employee.getUuid());
+            userResponseDto = UserMapper.INSTANCE.convertUserToUserDto(user, employee);
         }
 
         return userResponseDto;
@@ -132,6 +129,50 @@ public class AuthService {
         String jwt = token.replace("Bearer ", "");
         tokenBlacklistService.blacklistToken(jwt);
     }
+
+    public UserResponseDto resetPassword(String token, ResetPasswordRequestDto resetPasswordRequestDto) throws BaseException {
+        String email = jwtTokenConfiguration.extractUsername(getTokenFromHeader(token));
+        UserResponseDto userResponseDto = new UserResponseDto();
+
+        if (StringUtils.isNotBlank(email)) {
+            User user = userService.findByEmail(email).orElse(null);
+
+            if (user != null) {
+                if (user.getResetPassword() == null || user.getResetPassword().isBefore(LocalDateTime.now())) {
+
+                    String password = resetPasswordRequestDto.getPassword();
+                    String repeatPassword = resetPasswordRequestDto.getRepeatPassword();
+
+                    if (StringUtils.isNotBlank(password) && StringUtils.isNotBlank(repeatPassword)) {
+                        if (!password.equals(repeatPassword)) {
+                            throw new BadRequestException("Le password non coincidono.");
+                        }
+
+                        // REGEX: almeno 8 caratteri, 1 maiuscola, 1 minuscola, 1 cifra, 1 speciale
+                        String passwordRegex = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$";
+
+                        if (!password.matches(passwordRegex)) {
+                            throw new BadRequestException("La password deve contenere almeno 8 caratteri, una maiuscola, una minuscola, un numero e un carattere speciale.");
+                        }
+
+                        user.setPassword(passwordEncoder.encode(password));
+
+                        // Imposta la finestra per un altro reset a 30 minuti da ora
+                        user.setResetPassword(LocalDateTime.now().plusMinutes(30));
+
+                        Employee employee = employeeService.findByUser(user.getUuid());
+                        userResponseDto = UserMapper.INSTANCE.convertUserToUserDto(userService.updateByUuid(user, user.getUuid()), employee);
+                    } else {
+                        throw new IllegalArgumentException("Password e conferma non possono essere vuote.");
+                    }
+                } else {
+                    throw new InconsistencyDatetimeException("Impossibile cambiare la password: richiesta già effettuata di recente.");
+                }
+            }
+        }
+        return userResponseDto;
+    }
+
 
     private String getTokenFromHeader(String authHeader) {
         return authHeader.substring(7);

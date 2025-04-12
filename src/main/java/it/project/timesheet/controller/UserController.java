@@ -2,6 +2,7 @@ package it.project.timesheet.controller;
 
 import it.project.timesheet.controller.api.UserApi;
 import it.project.timesheet.domain.dto.request.EmployeeRequestDto;
+import it.project.timesheet.domain.dto.request.ResetPasswordRequestDto;
 import it.project.timesheet.domain.dto.request.UserRequestDto;
 import it.project.timesheet.domain.dto.response.AuthResponseDto;
 import it.project.timesheet.domain.dto.response.UserResponseDto;
@@ -65,5 +66,10 @@ public class UserController implements UserApi {
     @Override
     public void logout(String token) {
         authService.logout(token);
+    }
+
+    @Override
+    public UserResponseDto resetPassword(String token, ResetPasswordRequestDto resetPasswordRequestDto) throws BaseException {
+        return authService.resetPassword(token, resetPasswordRequestDto);
     }
 }
